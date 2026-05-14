@@ -1,0 +1,23 @@
+{
+  "name": "MikroTik Tools — Zakshin",
+  "short_name": "MikroTik Tools",
+  "description": "Free browser tools for MikroTik RouterOS: WireGuard, Hairpin NAT, DoH DNS, IPTV. Công cụ web: WireGuard, Hairpin NAT, DoH DNS, IPTV.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f7fa",
+  "theme_color": "#f5f7fa",
+  "icons": [
+    {
+      "src": "Logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "Logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

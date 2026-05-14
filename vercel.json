@@ -1,0 +1,92 @@
+{
+  "buildCommand": "python3 scripts/seo_guard.py",
+  "outputDirectory": ".",
+  "rewrites": [
+    { "source": "/wireguard", "destination": "/tools/wireguard.html" },
+    { "source": "/wireguard-site-to-site", "destination": "/tools/wireguard-site-to-site.html" },
+    { "source": "/eoip-tunnel", "destination": "/tools/eoip-tunnel.html" },
+    { "source": "/hairpin-nat", "destination": "/tools/hairpin-nat.html" },
+    { "source": "/doh", "destination": "/tools/doh.html" },
+    { "source": "/iptv", "destination": "/tools/iptv.html" },
+    { "source": "/firewall", "destination": "/tools/firewall.html" },
+    { "source": "/cloudflare-ddns", "destination": "/tools/cloudflare-ddns.html" },
+    { "source": "/startup", "destination": "/tools/startup.html" },
+    { "source": "/social-block", "destination": "/tools/social-block.html" },
+    { "source": "/routing", "destination": "/tools/routing.html" },
+    { "source": "/pcc", "destination": "/tools/pcc.html" },
+    { "source": "/cheat-pppoe", "destination": "/tools/cheat-pppoe.html" }
+  ],
+  "redirects": [
+    { "source": "/index.html", "destination": "/", "permanent": true },
+
+    { "source": "/wireguard/", "destination": "/wireguard", "permanent": true },
+    { "source": "/wireguard-site-to-site/", "destination": "/wireguard-site-to-site", "permanent": true },
+    { "source": "/eoip-tunnel/", "destination": "/eoip-tunnel", "permanent": true },
+    { "source": "/hairpin-nat/", "destination": "/hairpin-nat", "permanent": true },
+    { "source": "/nextdns/", "destination": "/doh", "permanent": true },
+    { "source": "/nextdns", "destination": "/doh", "permanent": true },
+    { "source": "/tools/nextdns.html", "destination": "/doh", "permanent": true },
+    { "source": "/doh/", "destination": "/doh", "permanent": true },
+    { "source": "/iptv/", "destination": "/iptv", "permanent": true },
+    { "source": "/firewall/", "destination": "/firewall", "permanent": true },
+    { "source": "/cloudflare-ddns/", "destination": "/cloudflare-ddns", "permanent": true },
+    { "source": "/startup/", "destination": "/startup", "permanent": true },
+    { "source": "/social-block/", "destination": "/social-block", "permanent": true },
+    { "source": "/routing/", "destination": "/routing", "permanent": true },
+    { "source": "/pcc/", "destination": "/pcc", "permanent": true },
+    { "source": "/cheat-pppoe/", "destination": "/cheat-pppoe", "permanent": true },
+
+    { "source": "/wireguard.html", "destination": "/wireguard", "permanent": true },
+    { "source": "/wireguard-site-to-site.html", "destination": "/wireguard-site-to-site", "permanent": true },
+    { "source": "/eoip-tunnel.html", "destination": "/eoip-tunnel", "permanent": true },
+    { "source": "/hairpin-nat.html", "destination": "/hairpin-nat", "permanent": true },
+    { "source": "/Hairpin_NAT.html", "destination": "/hairpin-nat", "permanent": true },
+    { "source": "/nextdns.html", "destination": "/doh", "permanent": true },
+    { "source": "/doh.html", "destination": "/doh", "permanent": true },
+    { "source": "/IPTV.html", "destination": "/iptv", "permanent": true },
+    { "source": "/iptv.html", "destination": "/iptv", "permanent": true },
+    { "source": "/IPTV", "destination": "/iptv", "permanent": true },
+    { "source": "/firewall.html", "destination": "/firewall", "permanent": true },
+    { "source": "/Firewall.html", "destination": "/firewall", "permanent": true },
+    { "source": "/Firewall", "destination": "/firewall", "permanent": true },
+    { "source": "/cloudflare-ddns.html", "destination": "/cloudflare-ddns", "permanent": true },
+    { "source": "/startup.html", "destination": "/startup", "permanent": true },
+    { "source": "/social-block.html", "destination": "/social-block", "permanent": true },
+    { "source": "/routing.html", "destination": "/routing", "permanent": true },
+    { "source": "/pcc.html", "destination": "/pcc", "permanent": true },
+    { "source": "/cheat-pppoe.html", "destination": "/cheat-pppoe", "permanent": true },
+    { "source": "/Routing.html", "destination": "/routing", "permanent": true },
+    { "source": "/Routing", "destination": "/routing", "permanent": true }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }
+      ]
+    },
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        { "key": "Content-Type", "value": "application/xml; charset=utf-8" },
+        { "key": "Cache-Control", "value": "public, max-age=3600, stale-while-revalidate=86400" }
+      ]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [
+        { "key": "Content-Type", "value": "text/plain; charset=utf-8" },
+        { "key": "Cache-Control", "value": "public, max-age=3600, stale-while-revalidate=86400" }
+      ]
+    }
+  ]
+}

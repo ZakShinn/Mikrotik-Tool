@@ -1,0 +1,45 @@
+# https://mikrotik.hainghia.net/
+# Static toolkit — full crawl; sitemap below.
+
+# Preview / rich-link crawlers (explicit Allow helps when upstream proxies mis-route bots)
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Facebot
+Allow: /
+
+User-agent: facebookcatalog
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: Slackbot
+Allow: /
+
+User-agent: Slackbot-LinkExpanding
+Allow: /
+
+User-agent: Discordbot
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: Pinterestbot
+Allow: /
+
+User-agent: vkShare
+Allow: /
+
+# Default — index all public URLs (HTML, assets/, sitemap, robots).
+User-agent: *
+Allow: /
+
+Sitemap: https://mikrotik.hainghia.net/sitemap.xml

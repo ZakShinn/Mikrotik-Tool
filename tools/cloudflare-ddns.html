@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <script>(function(){try{if(localStorage.getItem('mikrotik-theme')==='dark')document.documentElement.classList.add('theme-dark');}catch(e){}})();</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Cloudflare DDNS trên MikroTik — Update A/AAAA record | Zakshin</title>
+    <meta name="description" content="Sinh script RouterOS v7+ cập nhật DDNS (A/AAAA) qua Cloudflare API. Nhập Zone ID, API Token, hostname, interval — copy/paste vào Terminal.">
+    <meta name="keywords" content="MikroTik, RouterOS, Cloudflare, DDNS, DNS record, API token, A record, AAAA record, Zakshin">
+    <meta name="author" content="Nghĩa Zakshin">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="https://mikrotik.hainghia.net/cloudflare-ddns">
+    <link rel="alternate" hreflang="vi" href="https://mikrotik.hainghia.net/cloudflare-ddns">
+    <link rel="alternate" hreflang="en" href="https://mikrotik.hainghia.net/cloudflare-ddns">
+    <link rel="alternate" hreflang="x-default" href="https://mikrotik.hainghia.net/cloudflare-ddns">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="../sitemap.xml">
+    <link rel="icon" type="image/png" href="../Logo.png">
+    <link rel="apple-touch-icon" href="../Logo.png">
+    <link rel="manifest" href="../site.webmanifest">
+    <meta name="theme-color" content="#f5f7fa">
+    <meta name="format-detection" content="telephone=no">
+
+    <meta property="og:site_name" content="MikroTik Tools — Zakshin">
+    <meta property="og:title" content="Cloudflare DDNS trên MikroTik — Update record | Zakshin">
+    <meta property="og:description" content="Sinh script RouterOS cập nhật DDNS A/AAAA qua Cloudflare API — copy/paste.">
+    <meta property="og:url" content="https://mikrotik.hainghia.net/cloudflare-ddns">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:image" content="https://mikrotik.hainghia.net/Logo.png">
+    <meta property="og:image:alt" content="MikroTik Tools — Cloudflare DDNS">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Cloudflare DDNS trên MikroTik | Zakshin">
+    <meta name="twitter:description" content="Generator script RouterOS cập nhật DDNS (A/AAAA) qua Cloudflare API.">
+    <meta name="twitter:image" content="https://mikrotik.hainghia.net/Logo.png">
+
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@graph":[
+      {"@type":"WebApplication","name":"Cloudflare DDNS cho MikroTik","url":"https://mikrotik.hainghia.net/cloudflare-ddns","applicationCategory":"NetworkingApplication","operatingSystem":"Web Browser","browserRequirements":"Requires JavaScript.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"Nghĩa Zakshin","url":"https://github.com/ZakShinn"},"description":"Sinh script RouterOS v7+ cập nhật DNS record (A/AAAA) qua Cloudflare API."},
+      {"@type":"BreadcrumbList","itemListElement":[
+        {"@type":"ListItem","position":1,"name":"Trang chủ","item":"https://mikrotik.hainghia.net/"},
+        {"@type":"ListItem","position":2,"name":"Cloudflare DDNS","item":"https://mikrotik.hainghia.net/cloudflare-ddns"}
+      ]}
+    ]}
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../assets/site.css">
+    <script src="../assets/theme-ui.js"></script>
+    <script src="../assets/lang-ui.js"></script>
+    <script type="application/json" id="seo-i18n-data">{"en":{"title":"Cloudflare DDNS on MikroTik — Update A/AAAA via API | Zakshin","description":"Generate RouterOS v7+ scripts to update Cloudflare DDNS (A/AAAA) via the Cloudflare API. Enter zone ID, API token, hostname, and interval — copy/paste into Terminal.","keywords":"MikroTik, RouterOS, Cloudflare, DDNS, DNS record, API token, A record, AAAA record, Zakshin","ogTitle":"Cloudflare DDNS on MikroTik — Update records | Zakshin","ogDesc":"RouterOS script to push A/AAAA updates to Cloudflare — browser-side.","twitterTitle":"Cloudflare DDNS — MikroTik | Zakshin","twitterDesc":"Cloudflare API DDNS script for RouterOS.","ogImageAlt":"MikroTik Cloudflare DDNS"}}</script>
+    <script src="../assets/seo-i18n.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="app-shell">
+    <div class="noise" aria-hidden="true"></div>
+    <div id="app" class="app-shell">
+        <div v-if="showToast" class="toast-msg"><i class="fas fa-check-circle text-success mr-2"></i> {{ t.ui.copied }}</div>
+
+        <nav class="tool-nav">
+            <div class="tool-nav-inner">
+                <div class="tool-nav-row">
+                    <div class="tool-nav-brand">
+                        <a href="/" class="btn btn-ghost btn-sm btn-icon" title="Trang chủ" aria-label="Trang chủ"><i class="fas fa-home"></i></a>
+                        <span class="tool-nav-logo" aria-hidden="true"><img src="../Logo.png" alt="" width="34" height="34" decoding="async"></span>
+                        <h1 class="tool-nav-title"><i class="fas fa-cloud accent-icon"></i> Cloudflare DDNS</h1>
+                    </div>
+                    <div class="tool-nav-actions">
+                        <button type="button" class="btn btn-ghost btn-sm btn-icon" @click="toggleTheme" :aria-label="theme === 'dark' ? t.ui.themeLight : t.ui.themeDark" :title="theme === 'dark' ? t.ui.themeLight : t.ui.themeDark">
+                            <i :class="theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" class="btn btn-ghost btn-sm" @click="toggleLang">
+                            <i class="fas fa-globe mr-1"></i> {{ lang === 'vi' ? 'English' : 'Tiếng Việt' }}
+                        </button>
+                    </div>
+                    <div class="tool-nav-meta">
+                        <div><strong>Nghĩa Zakshin</strong></div>
+                        <div class="tool-nav-meta-sub">MikroTik Tools</div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="tool-main">
+            <div class="layout-split">
+                <section class="panel nat-panel-form">
+                    <h2 class="section-title"><i class="fas fa-sliders-h mr-2"></i> {{ t.ui.params }}</h2>
+
+                    <div v-for="field in fieldsList" :key="field" class="field">
+                        <label class="label">
+                            {{ t.labels[field] }}
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels[field] }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}</span><span class="t-val">{{ t.hints[field].aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}</span><span class="t-val">{{ t.hints[field].type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}</span><span class="t-val"><span class="tip-def">{{ t.hints[field].def }}</span></span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <input class="input" v-model="form[field]" :placeholder="t.hints[field].def">
+                            <p v-if="field === 'apiToken'" class="help mb-0">
+                                {{ t.ui.apiTokenTemplateLead }}
+                                <a :href="cfTokenTemplateUrl" target="_blank" rel="noopener noreferrer">{{ t.ui.apiTokenTemplateLink }}</a>.
+                                {{ t.ui.apiTokenTemplateNote }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="callout" style="margin-bottom:1rem">
+                        <strong><i class="fas fa-circle-info mr-1"></i> {{ t.ui.dataGuideTitle }}</strong>
+                        <ol class="help mb-0" style="margin-top:.5rem; padding-left:1.2rem">
+                            <li><strong>{{ t.labels.zoneId }}:</strong> {{ t.ui.guideZoneId }} <a :href="cfDashboardUrl" target="_blank" rel="noopener noreferrer">{{ t.ui.openCloudflare }}</a>.</li>
+                            <li><strong>{{ t.labels.apiToken }}:</strong> {{ t.ui.guideApiToken }} <a :href="cfTokenTemplateUrl" target="_blank" rel="noopener noreferrer">{{ t.ui.apiTokenTemplateLink }}</a>.</li>
+                            <li><strong>{{ t.labels.recordName }}:</strong> {{ t.ui.guideRecordName }} <a :href="cfDnsRecordsUrl" target="_blank" rel="noopener noreferrer">{{ t.ui.openDnsRecords }}</a>.</li>
+                            <li><strong>{{ t.labels.recordId }}:</strong> {{ t.ui.guideRecordId }} <a :href="cfDnsRecordsUrl" target="_blank" rel="noopener noreferrer">{{ t.ui.openDnsRecords }}</a> · <a :href="recordIdGuideVideoUrl" target="_blank" rel="noopener noreferrer">{{ t.ui.watchRecordIdVideo }}</a>.</li>
+                            <li><strong>{{ t.labels.pppoeInterface }}:</strong> {{ t.ui.guidePppoeInterface }}</li>
+                        </ol>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.labels.recordType }}
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.recordType }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.hints.recordType.aim }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <select class="input" v-model="form.recordType">
+                                <option value="A">A (IPv4)</option>
+                                <option value="AAAA">AAAA (IPv6)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.labels.ipSource }}
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.ipSource }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.hints.ipSource.aim }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <select class="input" v-model="form.ipSource">
+                                <option value="ipify">{{ t.ui.ipSourceIpify }}</option>
+                                <option value="pppoe">{{ t.ui.ipSourcePppoe }}</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="field" v-if="form.ipSource === 'ipify'">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.checkIp3Sites">
+                            <span class="checkbox-text">{{ t.ui.checkIp3Sites }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.ui.checkIp3SitesTip }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="field" v-if="form.ipSource === 'pppoe'">
+                        <label class="label">
+                            {{ t.labels.pppoeInterface }}
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.pppoeInterface }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}</span><span class="t-val">{{ t.hints.pppoeInterface.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}</span><span class="t-val">{{ t.hints.pppoeInterface.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}</span><span class="t-val"><span class="tip-def">{{ t.hints.pppoeInterface.def }}</span></span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <input class="input" v-model="form.pppoeInterface" :placeholder="t.hints.pppoeInterface.def">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.proxied">
+                            <span class="checkbox-text">{{ t.ui.proxied }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.ui.proxiedTip }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.labels.ttl }}
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.ttl }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.hints.ttl.aim }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <select class="input" v-model="form.ttl">
+                                <option v-for="option in ttlOptions" :key="option.value" :value="option.value">
+                                    {{ option.label }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.installScheduler">
+                            <span class="checkbox-text">{{ t.ui.installScheduler }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.ui.installSchedulerTip }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <template v-if="form.installScheduler">
+                        <div class="field">
+                            <label class="label">{{ t.labels.scriptName }}</label>
+                            <div class="control"><input class="input" v-model="form.scriptName" :placeholder="t.hints.scriptName.def"></div>
+                        </div>
+                        <div class="field">
+                            <label class="label">{{ t.labels.schedulerName }}</label>
+                            <div class="control"><input class="input" v-model="form.schedulerName" :placeholder="t.hints.schedulerName.def"></div>
+                        </div>
+                        <div class="field mb-0">
+                            <label class="label">{{ t.labels.interval }}</label>
+                            <div class="control"><input class="input" v-model="form.interval" :placeholder="t.hints.interval.def"></div>
+                        </div>
+                    </template>
+                </section>
+
+                <section class="panel panel-script nat-panel-script">
+                    <div class="code-container">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:.5rem">
+                            <div style="font-weight:700; color:var(--text)"><i class="fas fa-terminal mr-2"></i> {{ t.ui.scriptTitle }}</div>
+                            <button type="button" class="btn btn-dark btn-sm copy-btn" @click="copyText('main-script')"><i class="fas fa-copy mr-1"></i> {{ t.ui.copy }}</button>
+                        </div>
+                        <pre id="main-script" class="script-pre">{{ generatedScript }}</pre>
+                    </div>
+                    <div class="callout mb-0">
+                        <strong><i class="fas fa-shield-halved mr-1"></i></strong> {{ t.ui.securityNote }}
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        const i18n = {
+            vi: {
+                labels: {
+                    zoneId: 'Zone ID',
+                    apiToken: 'Cloudflare API Token',
+                    recordName: 'Hostname (record name)',
+                    recordId: 'Record ID',
+                    recordType: 'Loại record',
+                    ipSource: 'Nguồn lấy IP',
+                    pppoeInterface: 'Interface PPPoE',
+                    ttl: 'TTL',
+                    scriptName: 'Tên script (trên router)',
+                    schedulerName: 'Tên scheduler',
+                    interval: 'Chu kỳ chạy'
+                },
+                hints: {
+                    zoneId: { aim: 'Cloudflare Dashboard → Zone → Overview → Zone ID.', type: 'Chuỗi', def: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' },
+                    apiToken: { aim: 'API Token có quyền “Zone.DNS:Edit” (và Zone:Read nếu cần). Khuyến nghị token scoped theo đúng zone.', type: 'Chuỗi bí mật', def: 'cf_api_token_here' },
+                    recordName: { aim: 'Tên record đầy đủ (FQDN) cần update, ví dụ home.example.com.', type: 'Hostname', def: 'home.example.com' },
+                    recordId: { aim: 'ID của DNS record trong Cloudflare. Vào DNS record → Edit hoặc dùng API để lấy ID.', type: 'Chuỗi', def: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' },
+                    recordType: { aim: 'A cho IPv4, AAAA cho IPv6. Script sẽ lấy IP tương ứng theo nguồn IP đã chọn.', type: 'A/AAAA', def: 'A' },
+                    ipSource: { aim: 'Chọn lấy IP public qua 3 dịch vụ ngoài và chỉ dùng kết quả có ít nhất 2 dịch vụ trùng nhau, hoặc lấy trực tiếp IP đang gán trên interface PPPoE.', type: 'Tự động/PPPoE', def: 'Tự động lấy IP public' },
+                    pppoeInterface: { aim: 'Tên interface PPPoE trên MikroTik. Với record A script lấy /ip address; với AAAA script lấy /ipv6 address global.', type: 'Interface name', def: 'pppoe-out1' },
+                    ttl: { aim: 'Chọn TTL Cloudflare cho phép. Script sẽ gửi giá trị giây tương ứng lên API.', type: 'Danh sách chọn', def: '1 min = 60 giây' },
+                    scriptName: { aim: 'Tên object trong /system script (dùng để scheduler gọi).', type: 'Chuỗi', def: 'cf-ddns' },
+                    schedulerName: { aim: 'Tên scheduler tạo trong /system scheduler.', type: 'Chuỗi', def: 'cf-ddns' },
+                    interval: { aim: 'Khoảng thời gian chạy lại (ví dụ 5m, 10m, 1h).', type: 'time', def: '5m' }
+                },
+                ui: {
+                    tipDetails: 'Chi tiết',
+                    tipAim: 'Ý nghĩa',
+                    tipType: 'Kiểu',
+                    tipDef: 'Ví dụ',
+                    params: 'Thông số',
+                    dataGuideTitle: 'Cách lấy từng dữ liệu',
+                    openCloudflare: 'Mở Cloudflare Dashboard',
+                    openDnsRecords: 'Mở trang DNS Records',
+                    guideZoneId: 'Bấm link, chọn domain cần DDNS, vào trang Overview rồi copy Zone ID trong mục API ở cạnh phải hoặc cuối trang.',
+                    guideApiToken: 'Bấm link token mẫu để tạo nhanh token có quyền DNS Edit, sau đó giới hạn token theo đúng zone/domain và copy token sau khi tạo.',
+                    guideRecordName: 'Vào DNS → Records, tạo hoặc chọn record cần cập nhật. Hostname là tên đầy đủ của record, ví dụ home.example.com.',
+                    guideRecordId: 'Trong DNS → Records, bấm Edit record cần cập nhật rồi tìm/copy Record ID trong phần API hoặc thông tin record.',
+                    watchRecordIdVideo: 'Xem video hướng dẫn lấy Record ID',
+                    guidePppoeInterface: 'Trên MikroTik chạy /interface pppoe-client print hoặc /interface print, lấy đúng tên interface như pppoe-out1.',
+                    apiTokenTemplateLead: 'Link tạo token mẫu:',
+                    apiTokenTemplateLink: 'Cloudflare DNS Edit Token',
+                    apiTokenTemplateNote: 'Sau khi mở, nên giới hạn token theo đúng zone/domain cần DDNS.',
+                    ipSourceIpify: 'Tự động lấy IP public (chọn 2/3)',
+                    ipSourcePppoe: 'Lấy IP từ interface PPPoE',
+                    checkIp3Sites: 'Bật check IP ở 3 trang web',
+                    checkIp3SitesTip: 'Mặc định bật để đảm bảo IP đúng: script chỉ dùng IP khi có ít nhất 2/3 trang trả về giống nhau. Nếu tắt, IPv4 dùng checkip.amazonaws.com là chính.',
+                    proxied: 'Bật proxy (orange cloud)',
+                    proxiedTip: 'Nếu bật, truy cập hostname sẽ đi qua Cloudflare proxy. TTL thường bị ép Auto.',
+                    installScheduler: 'Sinh lệnh cài script + scheduler (dán vào Terminal)',
+                    installSchedulerTip: 'Nếu tắt, chỉ xuất nội dung script để dán vào ô Source của /system script. Nếu bật, copy toàn bộ và dán vào Terminal MikroTik.',
+                    scriptTitle: 'Script RouterOS',
+                    copy: 'Copy script',
+                    securityNote: 'Không share API Token. Token sẽ nằm trong script trên router; hãy tạo token scope tối thiểu theo đúng zone + DNS edit.',
+                    copied: 'Đã sao chép!',
+                    themeDark: 'Giao diện tối',
+                    themeLight: 'Giao diện sáng'
+                }
+            },
+            en: {
+                labels: {
+                    zoneId: 'Zone ID',
+                    apiToken: 'Cloudflare API Token',
+                    recordName: 'Hostname (record name)',
+                    recordId: 'Record ID',
+                    recordType: 'Record type',
+                    ipSource: 'IP source',
+                    pppoeInterface: 'PPPoE interface',
+                    ttl: 'TTL',
+                    scriptName: 'Script name (on router)',
+                    schedulerName: 'Scheduler name',
+                    interval: 'Run interval'
+                },
+                hints: {
+                    zoneId: { aim: 'Cloudflare dashboard → zone overview → Zone ID.', type: 'String', def: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' },
+                    apiToken: { aim: 'Token with “Zone.DNS:Edit” permission (and Zone:Read if needed). Prefer zone-scoped token.', type: 'Secret string', def: 'cf_api_token_here' },
+                    recordName: { aim: 'The full record name (FQDN) to update, e.g. home.example.com.', type: 'Hostname', def: 'home.example.com' },
+                    recordId: { aim: 'Cloudflare DNS record ID. Open the DNS record edit page or use the API to retrieve it.', type: 'String', def: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' },
+                    recordType: { aim: 'A for IPv4, AAAA for IPv6. The script reads the matching address from the selected IP source.', type: 'A/AAAA', def: 'A' },
+                    ipSource: { aim: 'Choose between fetching public IP from 3 external services and using the result confirmed by at least 2 services, or reading the address assigned to a PPPoE interface.', type: 'Auto/PPPoE', def: 'Auto public IP' },
+                    pppoeInterface: { aim: 'Name of the PPPoE interface on MikroTik. For A records the script reads /ip address; for AAAA it reads a global /ipv6 address.', type: 'Interface name', def: 'pppoe-out1' },
+                    ttl: { aim: 'Choose one of the TTL values allowed by Cloudflare. The script sends the matching seconds value to the API.', type: 'Select list', def: '1 min = 60 seconds' },
+                    scriptName: { aim: 'Name under /system script (used by scheduler).', type: 'String', def: 'cf-ddns' },
+                    schedulerName: { aim: 'Name under /system scheduler.', type: 'String', def: 'cf-ddns' },
+                    interval: { aim: 'How often to re-run (e.g. 5m, 10m, 1h).', type: 'time', def: '5m' }
+                },
+                ui: {
+                    tipDetails: 'Details',
+                    tipAim: 'Meaning',
+                    tipType: 'Type',
+                    tipDef: 'Example',
+                    params: 'Parameters',
+                    dataGuideTitle: 'How to get each value',
+                    openCloudflare: 'Open Cloudflare Dashboard',
+                    openDnsRecords: 'Open DNS Records',
+                    guideZoneId: 'Open the link, select the DDNS domain, go to Overview, then copy Zone ID from the API section on the right or near the bottom.',
+                    guideApiToken: 'Open the token template link to quickly create a DNS Edit token, then scope it to the target zone/domain and copy the token after creation.',
+                    guideRecordName: 'Go to DNS → Records, create or select the record to update. The hostname is the full record name, e.g. home.example.com.',
+                    guideRecordId: 'In DNS → Records, click Edit on the record, then find/copy Record ID from the API or record details section.',
+                    watchRecordIdVideo: 'Watch Record ID guide video',
+                    guidePppoeInterface: 'On MikroTik run /interface pppoe-client print or /interface print, then copy the exact interface name such as pppoe-out1.',
+                    apiTokenTemplateLead: 'Template token link:',
+                    apiTokenTemplateLink: 'Cloudflare DNS Edit Token',
+                    apiTokenTemplateNote: 'After opening it, restrict the token to the specific DDNS zone/domain when possible.',
+                    ipSourceIpify: 'Auto public IP (2-of-3)',
+                    ipSourcePppoe: 'Use PPPoE interface IP',
+                    checkIp3Sites: 'Check IP against 3 websites',
+                    checkIp3SitesTip: 'Enabled by default for safer results: the script only uses an IP confirmed by at least 2 of 3 websites. If disabled, IPv4 uses checkip.amazonaws.com as the primary source.',
+                    proxied: 'Enable proxy (orange cloud)',
+                    proxiedTip: 'If enabled, the hostname is served via Cloudflare proxy. TTL is usually forced to Auto.',
+                    installScheduler: 'Generate install commands (paste into Terminal)',
+                    installSchedulerTip: 'If disabled, only the script body is printed for the /system script Source field. If enabled, paste the whole output into MikroTik Terminal.',
+                    scriptTitle: 'RouterOS script',
+                    copy: 'Copy script',
+                    securityNote: 'Do not share the API token. It will be stored in your router script; create a least-privilege, zone-scoped token.',
+                    copied: 'Copied!',
+                    themeDark: 'Dark theme',
+                    themeLight: 'Light theme'
+                }
+            }
+        };
+
+        function escapeRosString(s) {
+            return String(s || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+        }
+
+        createApp({
+            data() {
+                return {
+                    lang: typeof MikrotikLang !== 'undefined' ? MikrotikLang.get() : 'vi',
+                    theme: typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light',
+                    showToast: false,
+                    cfDashboardUrl: 'https://dash.cloudflare.com/',
+                    cfDnsRecordsUrl: 'https://dash.cloudflare.com/?to=/:account/:zone/dns/records',
+                    recordIdGuideVideoUrl: 'https://youtu.be/2pPMTGADb1g',
+                    cfTokenTemplateUrl: 'https://dash.cloudflare.com/profile/api-tokens?permissionGroupKeys=%5B%7B%22key%22%3A%22dns%22%2C%22type%22%3A%22edit%22%7D%5D&accountId=%2A&zoneId=all&name=MikroTik%20Cloudflare%20DDNS',
+                    ttlOptions: [
+                        { value: '60', label: '1 min' },
+                        { value: '120', label: '2 min' },
+                        { value: '300', label: '5 min' },
+                        { value: '600', label: '10 min' },
+                        { value: '900', label: '15 min' },
+                        { value: '1800', label: '30 min' }
+                    ],
+                    fieldsList: ['zoneId', 'apiToken', 'recordName', 'recordId'],
+                    form: {
+                        zoneId: '',
+                        apiToken: '',
+                        recordName: '',
+                        recordId: '',
+                        recordType: 'A',
+                        ipSource: 'ipify',
+                        checkIp3Sites: true,
+                        pppoeInterface: 'pppoe-out1',
+                        proxied: false,
+                        ttl: '60',
+                        installScheduler: true,
+                        scriptName: 'cf-ddns',
+                        schedulerName: 'cf-ddns',
+                        interval: '5m'
+                    }
+                };
+            },
+            computed: {
+                t() { return i18n[this.lang]; },
+                scriptBody() {
+                    const zoneId = (this.form.zoneId || '').trim();
+                    const token = (this.form.apiToken || '').trim();
+                    const name = (this.form.recordName || '').trim();
+                    const recordId = (this.form.recordId || '').trim();
+                    const type = (this.form.recordType || 'A').trim().toUpperCase();
+                    const ipSource = (this.form.ipSource || 'ipify').trim().toLowerCase();
+                    const checkIp3Sites = this.form.checkIp3Sites !== false;
+                    const pppoeInterface = (this.form.pppoeInterface || '').trim();
+                    const proxied = this.form.proxied ? 'true' : 'false';
+                    const ttl = (this.form.ttl || '1').trim() || '1';
+                    const ipServices = type === 'AAAA'
+                        ? ['https://api64.ipify.org/', 'https://ifconfig.co/ip', 'https://ipv6.icanhazip.com/']
+                        : ['http://checkip.amazonaws.com/', 'https://api.ipify.org/', 'https://ifconfig.me/ip'];
+                    const primaryIpService = type === 'AAAA' ? ipServices[0] : 'http://checkip.amazonaws.com/';
+                    const isVi = this.lang === 'vi';
+
+                    const safeZoneId = zoneId || 'YOUR_ZONE_ID';
+                    const safeToken = token || 'YOUR_API_TOKEN';
+                    const safeName = name || 'home.example.com';
+                    const safeRecordId = recordId || 'YOUR_RECORD_ID';
+                    const safePppoeInterface = pppoeInterface || 'pppoe-out1';
+                    const storedIpVar = type === 'AAAA' ? 'cfDdnsWanIp6Cur' : 'cfDdnsWanIp4Cur';
+
+                    const lines = [];
+                    lines.push(isVi
+                        ? ('# Cloudflare DDNS (' + type + ') — RouterOS v7+')
+                        : ('# Cloudflare DDNS (' + type + ') — RouterOS v7+'));
+                    lines.push('');
+                    lines.push(isVi ? '## ---- Cau hinh/Start ----' : '## ---- Configuration/Start ----');
+                    lines.push(':local cfToken "' + escapeRosString(safeToken) + '"');
+                    lines.push(':local zoneId "' + escapeRosString(safeZoneId) + '"');
+                    lines.push(':local recordId "' + escapeRosString(safeRecordId) + '"');
+                    lines.push(':local recordName "' + escapeRosString(safeName) + '"');
+                    lines.push(':local recordType "' + escapeRosString(type) + '"');
+                    lines.push(':local recordTtl ' + ttl);
+                    lines.push(':local recordProxied "' + proxied + '"');
+                    lines.push(':local certCheck false');
+                    if (ipSource === 'pppoe') {
+                        lines.push(':local pppoeInterface "' + escapeRosString(safePppoeInterface) + '"');
+                    }
+                    lines.push(isVi ? '## ---- Cau hinh/End ----' : '## ---- Configuration/End ----');
+                    lines.push('');
+                    lines.push(':global ' + storedIpVar);
+                    lines.push('');
+                    lines.push(isVi ? '# Lấy WAN IP hiện tại' : '# Fetch current WAN IP');
+                    lines.push(':local wanIpNew ""');
+                    if (ipSource === 'pppoe') {
+                        lines.push(':do {');
+                        if (type === 'AAAA') {
+                            lines.push('  :local addr ""');
+                            lines.push('  :foreach addrId in=[/ipv6 address find interface=$pppoeInterface disabled=no global=yes] do={');
+                            lines.push('    :if ([:len $addr] = 0) do={ :set addr [/ipv6 address get $addrId address] }');
+                            lines.push('  }');
+                        } else {
+                            lines.push('  :local addr ""');
+                            lines.push('  :foreach addrId in=[/ip address find interface=$pppoeInterface disabled=no] do={');
+                            lines.push('    :if ([:len $addr] = 0) do={ :set addr [/ip address get $addrId address] }');
+                            lines.push('  }');
+                        }
+                        lines.push('  :if ([:len $addr] = 0) do={ :error "pppoe-ip-not-found" }');
+                        lines.push('  :local slashPos [:find $addr "/"]');
+                        lines.push('  :if ([:typeof $slashPos] = "num") do={ :set wanIpNew [:pick $addr 0 $slashPos] } else={ :set wanIpNew $addr }');
+                        lines.push('} on-error={');
+                        lines.push('  :log warning "[CFUpdate script] Cannot read WAN IP from PPPoE interface"');
+                        lines.push('}');
+                    } else if (checkIp3Sites) {
+                        lines.push(':local ipServices {"' + ipServices.map(escapeRosString).join('";"') + '"}');
+                        lines.push(':local ipResult1 ""');
+                        lines.push(':local ipResult2 ""');
+                        lines.push(':local ipResult3 ""');
+                        lines.push(':local ipIndex 0');
+                        lines.push(':foreach svcUrl in=$ipServices do={');
+                        lines.push('  :set ipIndex ($ipIndex + 1)');
+                        lines.push('  :do {');
+                        lines.push('    :local ipFetch [/tool fetch url=$svcUrl as-value output=user]');
+                        lines.push('    :if (($ipFetch->"status") = "finished") do={');
+                        lines.push('      :local rawData ($ipFetch->"data")');
+                        lines.push('      :local rawLen [:len $rawData]');
+                        lines.push('      :while (($rawLen > 0) && (([:pick $rawData ($rawLen - 1) $rawLen] = "\\n") || ([:pick $rawData ($rawLen - 1) $rawLen] = "\\r") || ([:pick $rawData ($rawLen - 1) $rawLen] = " "))) do={');
+                        lines.push('        :set rawData [:pick $rawData 0 ($rawLen - 1)]');
+                        lines.push('        :set rawLen [:len $rawData]');
+                        lines.push('      }');
+                        lines.push('      :while (([:len $rawData] > 0) && ([:pick $rawData 0 1] = " ")) do={');
+                        lines.push('        :set rawData [:pick $rawData 1 [:len $rawData]]');
+                        lines.push('      }');
+                        lines.push('      :if ($ipIndex = 1) do={ :set ipResult1 $rawData }');
+                        lines.push('      :if ($ipIndex = 2) do={ :set ipResult2 $rawData }');
+                        lines.push('      :if ($ipIndex = 3) do={ :set ipResult3 $rawData }');
+                        lines.push('    }');
+                        lines.push('  } on-error={');
+                        lines.push('    :log warning "[CFUpdate script] Cannot fetch WAN IP from $svcUrl"');
+                        lines.push('  }');
+                        lines.push('}');
+                        lines.push(':if (($ipResult1 != "") && ($ipResult1 = $ipResult2)) do={ :set wanIpNew $ipResult1 }');
+                        lines.push(':if (($wanIpNew = "") && ($ipResult1 != "") && ($ipResult1 = $ipResult3)) do={ :set wanIpNew $ipResult1 }');
+                        lines.push(':if (($wanIpNew = "") && ($ipResult2 != "") && ($ipResult2 = $ipResult3)) do={ :set wanIpNew $ipResult2 }');
+                        lines.push(':if ($wanIpNew = "") do={');
+                        lines.push('  :log warning "[CFUpdate script] IP check mismatch or not enough results ($ipResult1 / $ipResult2 / $ipResult3)"');
+                        lines.push('}');
+                    } else {
+                        lines.push(':local svcUrl "' + escapeRosString(primaryIpService) + '"');
+                        lines.push(':do {');
+                        lines.push('  :local ipFetch [/tool fetch url=$svcUrl as-value output=user]');
+                        lines.push('  :if (($ipFetch->"status") = "finished") do={');
+                        lines.push('    :local rawData ($ipFetch->"data")');
+                        lines.push('    :local rawLen [:len $rawData]');
+                        lines.push('    :while (($rawLen > 0) && (([:pick $rawData ($rawLen - 1) $rawLen] = "\\n") || ([:pick $rawData ($rawLen - 1) $rawLen] = "\\r") || ([:pick $rawData ($rawLen - 1) $rawLen] = " "))) do={');
+                        lines.push('      :set rawData [:pick $rawData 0 ($rawLen - 1)]');
+                        lines.push('      :set rawLen [:len $rawData]');
+                        lines.push('    }');
+                        lines.push('    :while (([:len $rawData] > 0) && ([:pick $rawData 0 1] = " ")) do={');
+                        lines.push('      :set rawData [:pick $rawData 1 [:len $rawData]]');
+                        lines.push('    }');
+                        lines.push('    :set wanIpNew $rawData');
+                        lines.push('  }');
+                        lines.push('} on-error={');
+                        lines.push('  :log warning "[CFUpdate script] Cannot fetch WAN IP from $svcUrl"');
+                        lines.push('}');
+                    }
+                    lines.push(':if ($wanIpNew = "") do={');
+                    lines.push('  :log warning "[CFUpdate script] No WAN IP found, will retry on next run"');
+                    lines.push('} else={');
+                    lines.push('  :local wanIpIsValid true');
+                    if (type === 'A') {
+                        lines.push('  :do {');
+                        lines.push('    :local testIp [:toip $wanIpNew]');
+                        lines.push('  } on-error={ :set wanIpIsValid false }');
+                    }
+                    lines.push('  :if ($wanIpIsValid = false) do={');
+                    lines.push('    :log error "[CFUpdate script] Retrieved WAN IP is invalid"');
+                    lines.push('  } else={');
+                    lines.push('    :if (($wanIpNew != $' + storedIpVar + ') || ([:len $' + storedIpVar + '] = 0)) do={');
+                    lines.push('      :log warning "[CFUpdate script] WAN IP changed, updating Cloudflare DNS record"');
+                    lines.push('      :local checkCert "no"');
+                    lines.push('      :if ($certCheck = true) do={ :set checkCert "yes" }');
+                    lines.push('      :local url "https://api.cloudflare.com/client/v4/zones/$zoneId/dns_records/$recordId/"');
+                    lines.push('      :local httpData "{\\"type\\":\\"$recordType\\",\\"name\\":\\"$recordName\\",\\"content\\":\\"$wanIpNew\\",\\"ttl\\":$recordTtl,\\"proxied\\":$recordProxied,\\"comment\\":\\"Updated by MikroTik DDNS\\"}"');
+                    lines.push('      :do {');
+                    lines.push('        :local cfResult [/tool fetch http-method=put mode=https url=$url check-certificate=$checkCert output=user as-value http-header-field="Authorization: Bearer $cfToken,Content-Type: application/json" http-data=$httpData]');
+                    lines.push('        :if (($cfResult->"status") = "finished") do={');
+                    lines.push('          :log warning "[CFUpdate script] Updated Cloudflare DNS record"');
+                    lines.push('          :set ' + storedIpVar + ' $wanIpNew');
+                    lines.push('        } else={');
+                    lines.push('          :log error "[CFUpdate script] Error updating Cloudflare DNS record"');
+                    lines.push('        }');
+                    lines.push('      } on-error={');
+                    lines.push('        :log error "[CFUpdate script] Exception updating Cloudflare DNS record"');
+                    lines.push('      }');
+                    lines.push('    } else={');
+                    lines.push('      :log info "[CFUpdate script] WAN IP did not change"');
+                    lines.push('    }');
+                    lines.push('  }');
+                    lines.push('}');
+                    return lines.join('\n');
+                },
+                generatedScript() {
+                    const body = this.scriptBody;
+                    if (!this.form.installScheduler) return body;
+                    const isVi = this.lang === 'vi';
+
+                    const scriptName = (this.form.scriptName || 'cf-ddns').trim() || 'cf-ddns';
+                    const schedulerName = (this.form.schedulerName || 'cf-ddns').trim() || 'cf-ddns';
+                    const interval = (this.form.interval || '5m').trim() || '5m';
+
+                    const escBody = escapeRosString(body);
+                    const lines = [];
+                    lines.push(isVi ? '# 1) Tạo/cập nhật script' : '# 1) Create/replace script');
+                    lines.push('/system script remove [find name="' + escapeRosString(scriptName) + '"]');
+                    lines.push('/system script add name="' + escapeRosString(scriptName) + '" policy=read,write,test,password,sniff,sensitive source="' + escBody + '"');
+                    lines.push('');
+                    lines.push(isVi ? '# 2) Tạo/cập nhật scheduler' : '# 2) Create/replace scheduler');
+                    lines.push('/system scheduler remove [find name="' + escapeRosString(schedulerName) + '"]');
+                    lines.push('/system scheduler add name="' + escapeRosString(schedulerName) + '" interval=' + escapeRosString(interval) + ' on-event="' + escapeRosString(scriptName) + '" start-time=startup');
+                    lines.push('');
+                    lines.push(isVi ? '# 3) Chạy thử 1 lần ngay' : '# 3) Run once now');
+                    lines.push('/system script run "' + escapeRosString(scriptName) + '"');
+                    return lines.join('\n');
+                }
+            },
+            methods: {
+                toggleLang() {
+                    if (typeof MikrotikLang !== 'undefined') this.lang = MikrotikLang.toggle();
+                    else this.lang = this.lang === 'vi' ? 'en' : 'vi';
+                },
+                toggleTheme() {
+                    if (typeof MikrotikTheme !== 'undefined') MikrotikTheme.toggle();
+                    this.theme = typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light';
+                },
+                toast() {
+                    this.showToast = true;
+                    setTimeout(() => { this.showToast = false; }, 2500);
+                },
+                copyText(id) {
+                    const el = document.getElementById(id);
+                    const txt = el ? el.innerText : '';
+                    navigator.clipboard.writeText(txt);
+                    this.toast();
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
+

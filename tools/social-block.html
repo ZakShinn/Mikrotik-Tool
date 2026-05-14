@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <script>(function(){try{if(localStorage.getItem('mikrotik-theme')==='dark')document.documentElement.classList.add('theme-dark');}catch(e){}})();</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Chặn mạng xã hội — MikroTik Tools | Zakshin</title>
+    <meta name="description" content="Tool sinh script RouterOS để chặn mạng xã hội theo tuỳ chọn và theo khung giờ (scheduler). Copy-paste chạy trên MikroTik.">
+    <meta name="keywords" content="MikroTik, RouterOS, block social media, firewall, scheduler, facebook, tiktok, youtube, instagram">
+    <meta name="author" content="Nghĩa Zakshin">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="https://mikrotik.hainghia.net/social-block">
+    <link rel="alternate" hreflang="vi" href="https://mikrotik.hainghia.net/social-block">
+    <link rel="alternate" hreflang="en" href="https://mikrotik.hainghia.net/social-block">
+    <link rel="alternate" hreflang="x-default" href="https://mikrotik.hainghia.net/social-block">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="../sitemap.xml">
+    <link rel="icon" type="image/png" href="../Logo.png">
+    <link rel="apple-touch-icon" href="../Logo.png">
+    <link rel="manifest" href="../site.webmanifest">
+    <meta name="theme-color" content="#f5f7fa">
+    <meta name="format-detection" content="telephone=no">
+
+    <meta property="og:site_name" content="MikroTik Tools — Zakshin">
+    <meta property="og:title" content="Chặn mạng xã hội — MikroTik Tools | Zakshin">
+    <meta property="og:description" content="Sinh script RouterOS để chặn MXH theo tuỳ chọn và theo khung giờ.">
+    <meta property="og:url" content="https://mikrotik.hainghia.net/social-block">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:image" content="https://mikrotik.hainghia.net/Logo.png">
+    <meta property="og:image:alt" content="MikroTik Social Block tool">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Chặn mạng xã hội — MikroTik Tools | Zakshin">
+    <meta name="twitter:description" content="Sinh script RouterOS để chặn MXH theo tuỳ chọn và theo khung giờ.">
+    <meta name="twitter:image" content="https://mikrotik.hainghia.net/Logo.png">
+
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@graph":[
+      {"@type":"WebApplication","name":"Chặn mạng xã hội — MikroTik Tools","url":"https://mikrotik.hainghia.net/social-block","applicationCategory":"NetworkingApplication","operatingSystem":"Web Browser","browserRequirements":"Requires JavaScript.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"Nghĩa Zakshin","url":"https://github.com/ZakShinn"},"description":"Sinh script RouterOS để chặn mạng xã hội theo tuỳ chọn và lịch."},
+      {"@type":"BreadcrumbList","itemListElement":[
+        {"@type":"ListItem","position":1,"name":"Trang chủ","item":"https://mikrotik.hainghia.net/"},
+        {"@type":"ListItem","position":2,"name":"Chặn mạng xã hội","item":"https://mikrotik.hainghia.net/social-block"}
+      ]}
+    ]}
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../assets/site.css">
+    <script src="../assets/theme-ui.js"></script>
+    <script src="../assets/lang-ui.js"></script>
+    <script type="application/json" id="seo-i18n-data">{"en":{"title":"Block social media on MikroTik — Time-based firewall scripts | Zakshin","description":"Generate MikroTik RouterOS scripts to block selected social networks on a daily schedule. Pick services and time windows — firewall + scheduler output for copy/paste.","keywords":"MikroTik, RouterOS, block social media, firewall, scheduler, facebook, tiktok, youtube, instagram","ogTitle":"Block social media — MikroTik Tools | Zakshin","ogDesc":"Scheduled firewall rules to block social sites on RouterOS.","twitterTitle":"Social block — MikroTik | Zakshin","twitterDesc":"Time-based social blocking scripts for RouterOS.","ogImageAlt":"MikroTik social block tool"}}</script>
+    <script src="../assets/seo-i18n.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="app-shell">
+    <div class="noise" aria-hidden="true"></div>
+    <div id="app" class="app-shell">
+        <div v-if="showToast" class="toast-msg"><i class="fas fa-check-circle text-success mr-2"></i> {{ t.ui.copied }}</div>
+
+        <nav class="tool-nav">
+            <div class="tool-nav-inner">
+                <div class="tool-nav-row">
+                    <div class="tool-nav-brand">
+                        <a href="/" class="btn btn-ghost btn-sm btn-icon" :title="t.ui.home" :aria-label="t.ui.home"><i class="fas fa-home"></i></a>
+                        <span class="tool-nav-logo" aria-hidden="true"><img src="../Logo.png" alt="" width="34" height="34" decoding="async"></span>
+                        <h1 class="tool-nav-title"><i class="fas fa-ban accent-icon"></i> {{ t.ui.title }}</h1>
+                    </div>
+                    <div class="tool-nav-actions">
+                        <button type="button" class="btn btn-ghost btn-sm btn-icon" @click="toggleTheme" :aria-label="theme === 'dark' ? t.ui.themeLight : t.ui.themeDark" :title="theme === 'dark' ? t.ui.themeLight : t.ui.themeDark">
+                            <i :class="theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" class="btn btn-ghost btn-sm" @click="toggleLang">
+                            <i class="fas fa-globe mr-1"></i> {{ lang === 'vi' ? 'English' : 'Tiếng Việt' }}
+                        </button>
+                    </div>
+                    <div class="tool-nav-meta">
+                        <div><strong>Nghĩa Zakshin</strong></div>
+                        <div class="tool-nav-meta-sub">MikroTik Tools</div>
+                        <div class="tool-nav-meta-sub"><i class="fas fa-circle-check mr-1"></i> {{ t.ui.testedOn }}</div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="tool-main">
+            <div class="layout-split">
+                <section class="panel">
+                    <h2 class="section-title"><i class="fas fa-sliders-h mr-2"></i> {{ t.ui.config }}</h2>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.labels.lanList }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.lanList }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.lanList.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.lanList.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.lanList.def }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <input class="input" v-model="form.lanList" placeholder="LAN">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.labels.rulePlacement }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.rulePlacement }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.rulePlacement.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.rulePlacement.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.rulePlacement.def }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <div class="select">
+                                <select v-model="form.placement">
+                                    <option value="raw">{{ t.ui.raw }}</option>
+                                    <option value="filter">{{ t.ui.filter }}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.labels.blockMethods }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.blockMethods }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.blockMethods.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.blockMethods.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="t-val"><span class="tip-def">{{ t.hints.blockMethods.def }}</span></span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <div v-if="form.placement === 'raw' && form.methodLayer7" class="callout" style="margin-bottom:10px;">
+                                <strong><i class="fas fa-triangle-exclamation mr-1"></i></strong> {{ t.ui.warnLayer7Raw }}
+                            </div>
+                            <div class="wg-checkboxes">
+                                <label class="checkbox-row">
+                                    <input type="checkbox" v-model="form.methodAddrList">
+                                    <span class="checkbox-text">{{ t.ui.methodAddrList }}</span>
+                                    <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                        <span class="tip-content">
+                                            <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                            <span class="tip-row"><span class="t-val">{{ t.ui.methodAddrListTip }}</span></span>
+                                        </span>
+                                    </span>
+                                </label>
+                                <label class="checkbox-row">
+                                    <input type="checkbox" v-model="form.methodTlsHost">
+                                    <span class="checkbox-text">{{ t.ui.methodTlsHost }}</span>
+                                    <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                        <span class="tip-content">
+                                            <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                            <span class="tip-row"><span class="t-val">{{ t.ui.methodTlsHostTip }}</span></span>
+                                        </span>
+                                    </span>
+                                </label>
+                                <label class="checkbox-row">
+                                    <input type="checkbox" v-model="form.methodContent">
+                                    <span class="checkbox-text">{{ t.ui.methodContent }}</span>
+                                    <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                        <span class="tip-content">
+                                            <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                            <span class="tip-row"><span class="t-val">{{ t.ui.methodContentTip }}</span></span>
+                                        </span>
+                                    </span>
+                                </label>
+                                <label class="checkbox-row">
+                                    <input type="checkbox" v-model="form.methodLayer7">
+                                    <span class="checkbox-text">{{ t.ui.methodLayer7 }}</span>
+                                    <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                        <span class="tip-content">
+                                            <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                            <span class="tip-row"><span class="t-val">{{ t.ui.methodLayer7Tip }}</span></span>
+                                        </span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">{{ t.labels.socials }}</label>
+                        <div class="control">
+                            <div class="callout" style="margin-bottom:10px;">
+                                <strong><i class="fas fa-lightbulb mr-1"></i></strong> {{ t.ui.socialTip }}
+                            </div>
+                            <div class="grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;">
+                                <label class="checkbox-row" v-for="s in socials" :key="s.key" style="border:1px solid var(--border); border-radius:12px; padding:10px;">
+                                    <input type="checkbox" v-model="form.selected" :value="s.key">
+                                    <span class="checkbox-text"><strong>{{ s.label[lang] }}</strong><span style="display:block;color:var(--muted);font-size:12px;margin-top:2px;">{{ s.desc[lang] }}</span></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.useSchedule">
+                            <span class="checkbox-text">{{ t.labels.useSchedule }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.hints.useSchedule }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div v-if="form.useSchedule" class="field">
+                        <label class="label">
+                            {{ t.labels.timeRange }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.timeRange }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.timeRange.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.timeRange.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.timeRange.def }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                            <input class="input" style="max-width:150px;" v-model="form.startTime" placeholder="08:00:00">
+                            <span style="color:var(--muted);">→</span>
+                            <input class="input" style="max-width:150px;" v-model="form.endTime" placeholder="17:00:00">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.startEnabled">
+                            <span class="checkbox-text">{{ t.labels.startEnabled }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.hints.startEnabled }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="callout mb-0">
+                        <strong><i class="fas fa-triangle-exclamation mr-1"></i></strong> {{ t.ui.warn }}
+                    </div>
+                </section>
+
+                <section class="panel panel-script">
+                    <div class="code-container">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:.5rem">
+                            <div style="font-weight:700; color:var(--text)"><i class="fas fa-terminal mr-2"></i> {{ t.ui.script }}</div>
+                            <button type="button" class="btn btn-dark btn-sm copy-btn" @click="copyText('main-script')"><i class="fas fa-copy mr-1"></i> {{ t.ui.copy }}</button>
+                        </div>
+                        <pre id="main-script" class="script-pre">{{ generatedScript }}</pre>
+                    </div>
+                    <div class="callout mb-0">
+                        <strong><i class="fas fa-info-circle mr-1"></i></strong> {{ t.ui.note }}
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        const i18n = {
+            vi: {
+                ui: {
+                    title: 'Chặn mạng xã hội',
+                    config: 'Thông số',
+                    script: 'Script RouterOS',
+                    copy: 'Copy script',
+                    copied: 'Đã sao chép!',
+                    themeDark: 'Giao diện tối',
+                    themeLight: 'Giao diện sáng',
+                    home: 'Trang chủ',
+                    tipDetails: 'Chi tiết',
+                    tipAim: 'Giải thích',
+                    tipType: 'Kiểu',
+                    tipDef: 'Ví dụ',
+                    warn: 'Script này là gợi ý. Bạn nên test trong Safe Mode và kiểm tra ảnh hưởng (một số domain dùng CDN có thể gây chặn nhầm).',
+                    note: 'Gợi ý: Nếu vẫn truy cập được do QUIC/DoH, hãy cân nhắc tắt QUIC trên trình duyệt, hoặc kết hợp chặn DNS (NextDNS/Pi-hole) theo domain.',
+                    raw: 'Raw (prerouting) — chặn sớm, nhẹ CPU',
+                    filter: 'Filter (forward) — dễ đọc, tương thích hơn',
+                    socialTip: 'Chọn các dịch vụ bạn muốn chặn. Tool sẽ tạo rule theo các cách bạn chọn (dst-address-list / tls-host / content / layer7).',
+                    methodAddrList: 'Chặn theo dst-address-list (domain → IP động)',
+                    methodAddrListTip: 'Ưu: đơn giản, hợp với raw (chặn sớm), xử lý được HTTPS/QUIC nếu IP nằm trong list. Nhược: domain resolve có thể đổi IP/CDN, có thể chặn nhầm khi dùng chung IP.',
+                    methodTlsHost: 'Chặn theo tls-host (SNI) — HTTPS',
+                    methodTlsHostTip: 'Ưu: chặn theo domain khi truy cập HTTPS (SNI). Nhược: không chặn QUIC (UDP/443), không áp cho ECH/ESNI (tương lai), và không áp cho IP trực tiếp.',
+                    methodContent: 'Chặn theo content (HTTP Host header) — TCP/80',
+                    methodContentTip: 'Ưu: chặn nhanh với HTTP. Nhược: không hiệu quả với HTTPS vì payload mã hoá; có thể chặn nhầm khi match chuỗi trùng.',
+                    methodLayer7: 'Chặn theo Layer7 (regex) — nặng CPU',
+                    methodLayer7Tip: 'Ưu: linh hoạt (regex). Nhược: nặng CPU, chủ yếu hiệu quả với HTTP; không khuyến nghị cho router yếu hoặc lưu lượng lớn.'
+                    ,
+                    warnLayer7Raw: 'Bạn đang chọn Raw nhưng bật Layer7. Tool sẽ chỉ sinh Layer7 rule trong Filter (forward), không áp dụng trong Raw.'
+                    ,
+                    testedOn: 'Đã test ổn định trên RouterOS v7.22'
+                },
+                labels: {
+                    lanList: 'Tên interface-list LAN',
+                    rulePlacement: 'Vị trí rule',
+                    blockMethods: 'Cách chặn',
+                    socials: 'Chọn mạng xã hội',
+                    useSchedule: 'Bật lịch chặn theo khung giờ (mỗi ngày)',
+                    timeRange: 'Khung giờ chặn (start → end)',
+                    startEnabled: 'Bật chặn ngay sau khi dán script'
+                },
+                hints: {
+                    lanList: { aim: 'Tên interface-list LAN (thường có sẵn trong defconf). Rule sẽ match traffic từ in-interface-list=LAN.', type: 'Chữ', def: 'LAN' },
+                    rulePlacement: { aim: 'Chọn nơi đặt rule: Raw chặn sớm hơn; Filter dễ đọc/debug hơn.', type: 'Raw / Filter', def: 'Raw' },
+                    blockMethods: { aim: 'Chọn ít nhất 1 cách chặn. Lưu ý Layer7 chỉ sinh rule trong Filter.', type: 'Tùy chọn', def: 'Bật dst-address-list + tls-host (khuyến nghị)' },
+                    useSchedule: 'Nếu bật, tool sẽ tạo 2 scheduler: enable lúc start-time và disable lúc end-time (lặp mỗi ngày).',
+                    timeRange: { aim: 'Định dạng HH:MM:SS. Nếu end < start (qua đêm) thì logic “qua đêm” chưa được tool xử lý.', type: 'HH:MM:SS', def: '08:00:00 → 17:00:00' },
+                    startEnabled: 'Nếu tắt, rule sẽ được tạo ở trạng thái disabled=yes và bạn tự enable khi cần.'
+                }
+            },
+            en: {
+                ui: {
+                    title: 'Block social media',
+                    config: 'Parameters',
+                    script: 'RouterOS script',
+                    copy: 'Copy script',
+                    copied: 'Copied!',
+                    themeDark: 'Dark theme',
+                    themeLight: 'Light theme',
+                    home: 'Home',
+                    tipDetails: 'Details',
+                    tipAim: 'Explain',
+                    tipType: 'Type',
+                    tipDef: 'Example',
+                    warn: 'This is a starter template. Test in Safe Mode and review side effects (some domains may share CDNs).',
+                    note: 'Tip: If access still works via QUIC/DoH, consider disabling QUIC on clients or combine with DNS blocking (NextDNS/Pi-hole) by domain.',
+                    raw: 'Raw (prerouting) — early drop, lower CPU',
+                    filter: 'Filter (forward) — easier to read, more compatible',
+                    socialTip: 'Pick services to block. The tool generates rules using the selected methods (dst-address-list / tls-host / content / layer7).',
+                    methodAddrList: 'Block by dst-address-list (domain → dynamic IP)',
+                    methodAddrListTip: 'Pros: simple, works well in Raw (early drop), can cover HTTPS/QUIC if IP is in list. Cons: CDN/shared IPs may cause collateral blocks; IPs may change.',
+                    methodTlsHost: 'Block by tls-host (SNI) — HTTPS',
+                    methodTlsHostTip: 'Pros: blocks HTTPS by domain (SNI). Cons: does not block QUIC (UDP/443), may not work with ECH/ESNI in future, not for direct IP access.',
+                    methodContent: 'Block by content (HTTP Host header) — TCP/80',
+                    methodContentTip: 'Pros: effective for plain HTTP. Cons: not effective for HTTPS (encrypted); can false-positive if substring matches.',
+                    methodLayer7: 'Block by Layer7 (regex) — high CPU',
+                    methodLayer7Tip: 'Pros: flexible matching (regex). Cons: CPU heavy, mostly useful for HTTP; not recommended on weak routers or high traffic.'
+                    ,
+                    warnLayer7Raw: 'You selected Raw but enabled Layer7. The tool only generates Layer7 rules in Filter (forward), not in Raw.'
+                    ,
+                    testedOn: 'Tested stable on RouterOS v7.22'
+                },
+                labels: {
+                    lanList: 'LAN interface-list name',
+                    rulePlacement: 'Rule placement',
+                    blockMethods: 'Blocking methods',
+                    socials: 'Select social networks',
+                    useSchedule: 'Enable schedule (daily time window)',
+                    timeRange: 'Block time window (start → end)',
+                    startEnabled: 'Enable blocking right after import'
+                },
+                hints: {
+                    lanList: { aim: 'LAN interface-list name (usually exists in defconf). Rules match traffic from in-interface-list=LAN.', type: 'Text', def: 'LAN' },
+                    rulePlacement: { aim: 'Pick where to place rules: Raw drops earlier; Filter is easier to read/debug.', type: 'Raw / Filter', def: 'Raw' },
+                    blockMethods: { aim: 'Enable at least one method. Note: Layer7 rules are generated only in Filter.', type: 'Options', def: 'Enable dst-address-list + tls-host (recommended)' },
+                    useSchedule: 'If enabled, creates two schedulers: enable at start-time and disable at end-time (daily).',
+                    timeRange: { aim: 'Format HH:MM:SS. If end < start (overnight), the overnight logic is not handled by this tool.', type: 'HH:MM:SS', def: '08:00:00 → 17:00:00' },
+                    startEnabled: 'If off, rules are created disabled=yes and you can enable manually.'
+                }
+            }
+        };
+
+        const SOCIALS = [
+            {
+                key: 'facebook',
+                label: { vi: 'Facebook', en: 'Facebook' },
+                desc: { vi: 'facebook.com, fbcdn.net', en: 'facebook.com, fbcdn.net' },
+                domains: [
+                    'facebook.com', '*.facebook.com',
+                    'fbcdn.net', '*.fbcdn.net',
+                    'facebook.net', '*.facebook.net',
+                    'messenger.com', '*.messenger.com'
+                ]
+            },
+            {
+                key: 'instagram',
+                label: { vi: 'Instagram', en: 'Instagram' },
+                desc: { vi: 'instagram.com, cdninstagram.com', en: 'instagram.com, cdninstagram.com' },
+                domains: [
+                    'instagram.com', '*.instagram.com',
+                    'cdninstagram.com', '*.cdninstagram.com'
+                ]
+            },
+            {
+                key: 'tiktok',
+                label: { vi: 'TikTok', en: 'TikTok' },
+                desc: { vi: 'tiktok.com, tiktokcdn.com', en: 'tiktok.com, tiktokcdn.com' },
+                domains: [
+                    'tiktok.com', '*.tiktok.com',
+                    'tiktokcdn.com', '*.tiktokcdn.com',
+                    'tiktokv.com', '*.tiktokv.com',
+                    'byteoversea.com', '*.byteoversea.com'
+                ]
+            },
+            {
+                key: 'youtube',
+                label: { vi: 'YouTube', en: 'YouTube' },
+                desc: { vi: 'youtube.com, ytimg.com', en: 'youtube.com, ytimg.com' },
+                domains: [
+                    'youtube.com', '*.youtube.com',
+                    'googlevideo.com', '*.googlevideo.com',
+                    'ytimg.com', '*.ytimg.com',
+                    'youtu.be'
+                ]
+            },
+            {
+                key: 'x',
+                label: { vi: 'X (Twitter)', en: 'X (Twitter)' },
+                desc: { vi: 'x.com, twitter.com', en: 'x.com, twitter.com' },
+                domains: [
+                    'x.com', '*.x.com',
+                    'twitter.com', '*.twitter.com',
+                    't.co'
+                ]
+            },
+            {
+                key: 'discord',
+                label: { vi: 'Discord', en: 'Discord' },
+                desc: { vi: 'discord.com, discordapp.com', en: 'discord.com, discordapp.com' },
+                domains: [
+                    'discord.com', '*.discord.com',
+                    'discordapp.com', '*.discordapp.com',
+                    'discord.gg'
+                ]
+            },
+            {
+                key: 'zalo',
+                label: { vi: 'Zalo', en: 'Zalo' },
+                desc: { vi: 'zalo.me, zadn.vn', en: 'zalo.me, zadn.vn' },
+                domains: [
+                    'zalo.me', '*.zalo.me',
+                    'zadn.vn', '*.zadn.vn',
+                    'zaloapp.com', '*.zaloapp.com'
+                ]
+            },
+            {
+                key: 'windowsUpdate',
+                label: { vi: 'Windows Update', en: 'Windows Update' },
+                desc: { vi: 'windowsupdate.com, update.microsoft.com', en: 'windowsupdate.com, update.microsoft.com' },
+                domains: [
+                    'windowsupdate.com', '*.windowsupdate.com',
+                    'update.microsoft.com',
+                    'download.windowsupdate.com',
+                    'windowsupdate.microsoft.com',
+                    'wustat.windows.com',
+                    'ntservicepack.microsoft.com',
+                    'dl.delivery.mp.microsoft.com',
+                    'delivery.mp.microsoft.com'
+                ]
+            }
+        ];
+
+        function sanitizeTimeLike(value, fallback) {
+            const v = (value || '').trim();
+            if (!v) return fallback;
+            // Keep it simple; RouterOS will validate on paste.
+            return v;
+        }
+
+        function uniq(arr) {
+            const out = [];
+            const seen = new Set();
+            for (const x of arr) {
+                const k = String(x || '').trim();
+                if (!k || seen.has(k)) continue;
+                seen.add(k);
+                out.push(k);
+            }
+            return out;
+        }
+
+        createApp({
+            data() {
+                return {
+                    lang: typeof MikrotikLang !== 'undefined' ? MikrotikLang.get() : 'vi',
+                    theme: typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light',
+                    showToast: false,
+                    socials: SOCIALS,
+                    form: {
+                        lanList: 'LAN',
+                        placement: 'raw', // raw | filter
+                        methodAddrList: true,
+                        methodTlsHost: false,
+                        methodContent: false,
+                        methodLayer7: false,
+                        selected: ['facebook', 'tiktok'],
+                        useSchedule: false,
+                        startTime: '08:00:00',
+                        endTime: '17:00:00',
+                        startEnabled: true
+                    }
+                };
+            },
+            computed: {
+                t() { return i18n[this.lang]; },
+                selectedDomains() {
+                    const picked = new Set(this.form.selected || []);
+                    const all = [];
+                    for (const s of SOCIALS) {
+                        if (!picked.has(s.key)) continue;
+                        for (const d of (s.domains || [])) all.push(d);
+                    }
+                    return uniq(all);
+                },
+                selectedPlainDomains() {
+                    return uniq(this.selectedDomains.map(d => String(d || '').trim()).filter(Boolean).map(d => d.startsWith('*.') ? d.slice(2) : d));
+                },
+                generatedScript() {
+                    const lanList = (this.form.lanList || 'LAN').trim() || 'LAN';
+                    const placement = this.form.placement === 'filter' ? 'filter' : 'raw';
+                    const startEnabled = !!this.form.startEnabled;
+                    const isVi = this.lang === 'vi';
+
+                    const startTime = sanitizeTimeLike(this.form.startTime, '08:00:00');
+                    const endTime = sanitizeTimeLike(this.form.endTime, '17:00:00');
+                    const useSchedule = !!this.form.useSchedule;
+
+                    const domains = this.selectedDomains;
+                    const plainDomains = this.selectedPlainDomains;
+
+                    const tag = 'SOCIALBLOCK';
+                    const listName = 'SocialBlock-Domains';
+                    const l7Name = 'socialblock-l7';
+                    const enableScriptName = 'socialblock-enable';
+                    const disableScriptName = 'socialblock-disable';
+                    const schedEnableName = 'socialblock-enable-daily';
+                    const schedDisableName = 'socialblock-disable-daily';
+
+                    const disabledFlag = startEnabled ? 'disabled=no' : 'disabled=yes';
+
+                    const lines = [];
+                    lines.push(isVi
+                        ? `# Chặn mạng xã hội (tool-generated) — MikroTik Tools`
+                        : `# Social media block (tool-generated) — MikroTik Tools`);
+                    lines.push(isVi
+                        ? `# Vị trí rule: ${placement.toUpperCase()} | Interface-list LAN: ${lanList}`
+                        : `# Placement: ${placement.toUpperCase()} | LAN list: ${lanList}`);
+                    lines.push(isVi
+                        ? `# Số domain đã chọn: ${domains.length ? domains.length : 0}`
+                        : `# Selected domains: ${domains.length ? domains.length : 0}`);
+                    lines.push(isVi
+                        ? `# Phương pháp: addr-list=${this.form.methodAddrList ? 'on' : 'off'}, tls-host=${this.form.methodTlsHost ? 'on' : 'off'}, content=${this.form.methodContent ? 'on' : 'off'}, layer7=${this.form.methodLayer7 ? 'on' : 'off'}`
+                        : `# Methods: addr-list=${this.form.methodAddrList ? 'on' : 'off'}, tls-host=${this.form.methodTlsHost ? 'on' : 'off'}, content=${this.form.methodContent ? 'on' : 'off'}, layer7=${this.form.methodLayer7 ? 'on' : 'off'}`);
+                    lines.push('');
+
+                    const useAnyMethod = !!(this.form.methodAddrList || this.form.methodTlsHost || this.form.methodContent || this.form.methodLayer7);
+                    const useAddrList = !!this.form.methodAddrList;
+                    const useTlsHost = !!this.form.methodTlsHost;
+                    const useContent = !!this.form.methodContent;
+                    const useLayer7 = !!this.form.methodLayer7;
+
+                    if (!useAnyMethod) {
+                        lines.push(isVi
+                            ? '# GHI CHÚ: Chưa chọn phương pháp chặn nào. Hãy bật ít nhất 1 phương pháp trong UI.'
+                            : '# NOTE: No blocking method selected. Enable at least one method in UI.');
+                        lines.push('');
+                    }
+
+                    if (useAddrList) {
+                        lines.push(isVi ? '# 1) Address-list (domain → IP động)' : '# 1) Address-list (domains → dynamic IPs)');
+                        lines.push('/ip firewall address-list');
+                        lines.push(`:foreach i in=[find list="${listName}"] do={ remove $i }`);
+                        if (!domains.length) {
+                            lines.push(isVi
+                                ? `# GHI CHÚ: Chưa chọn dịch vụ nào. Hãy tick ít nhất 1 dịch vụ.`
+                                : `# NOTE: No social network selected. Pick at least one.`);
+                        } else {
+                            for (const d of domains) {
+                                lines.push(`add list="${listName}" address=${d} comment="${tag}: ${d}" disabled=no`);
+                            }
+                        }
+                        lines.push('');
+                    }
+
+                    const chain = placement === 'raw' ? 'prerouting' : 'forward';
+                    const menu = placement === 'raw' ? '/ip firewall raw' : '/ip firewall filter';
+                    const inIfListProp = 'in-interface-list';
+
+                    lines.push(isVi ? `# 2) Firewall rules (${placement})` : `# 2) Firewall rules (${placement})`);
+                    lines.push(menu);
+                    lines.push(isVi
+                        ? `# Bạn có thể bật/tắt tất cả rule bằng comment prefix "${tag}:"`
+                        : `# You can disable/enable all rules by comment prefix "${tag}:"`);
+                    if (useAddrList) {
+                        lines.push(isVi
+                            ? `# Cách dst-address-list (TCP/80, TCP/443, UDP/443)`
+                            : `# dst-address-list method (TCP/80, TCP/443, UDP/443)`);
+                        lines.push(`add chain=${chain} action=drop comment="${tag}: addrlist drop tcp/80" protocol=tcp dst-port=80 ${inIfListProp}=${lanList} dst-address-list="${listName}" ${disabledFlag}`);
+                        lines.push(`add chain=${chain} action=drop comment="${tag}: addrlist drop tcp/443" protocol=tcp dst-port=443 ${inIfListProp}=${lanList} dst-address-list="${listName}" ${disabledFlag}`);
+                        lines.push(`add chain=${chain} action=drop comment="${tag}: addrlist drop udp/443 (QUIC)" protocol=udp dst-port=443 ${inIfListProp}=${lanList} dst-address-list="${listName}" ${disabledFlag}`);
+                    }
+                    if (useTlsHost) {
+                        lines.push(isVi
+                            ? `# Cách tls-host (SNI HTTPS TCP/443). KHÔNG chặn QUIC (UDP/443).`
+                            : `# tls-host method (HTTPS SNI on TCP/443). Does NOT block QUIC (UDP/443).`);
+                        for (const d of domains) {
+                            lines.push(`add chain=${chain} action=drop comment="${tag}: tlshost ${d}" protocol=tcp dst-port=443 ${inIfListProp}=${lanList} tls-host=${d} ${disabledFlag}`);
+                        }
+                    }
+                    if (useContent) {
+                        lines.push(isVi
+                            ? `# Cách content (HTTP TCP/80). HTTPS bị mã hoá nên content không hiệu quả.`
+                            : `# content method (HTTP on TCP/80). HTTPS payload is encrypted, so content won't help there.`);
+                        for (const d of plainDomains) {
+                            lines.push(`add chain=${chain} action=drop comment="${tag}: content ${d}" protocol=tcp dst-port=80 ${inIfListProp}=${lanList} content=${d} ${disabledFlag}`);
+                        }
+                    }
+                    lines.push('');
+
+                    if (useLayer7) {
+                        lines.push(isVi ? '# 2b) Layer7 protocol + rules (chỉ Filter)' : '# 2b) Layer7 protocol + rules (Filter only)');
+                        lines.push(isVi
+                            ? '# GHI CHÚ: Layer7 nặng CPU và chủ yếu hữu ích với HTTP. Tool không sinh Layer7 trong Raw.'
+                            : '# NOTE: Layer7 matcher is CPU-heavy and primarily useful for HTTP. Not generated in Raw.');
+                        const esc = (s) => String(s || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        const re = plainDomains.length ? ('(' + plainDomains.map(esc).join('|') + ')') : '(example\\.com)';
+                        lines.push('/ip firewall layer7-protocol');
+                        lines.push(`:if ([:len [find name="${l7Name}"]] > 0) do={ remove [find name="${l7Name}"] }`);
+                        lines.push(`add name="${l7Name}" regexp="${re}" comment="${tag}: layer7"`);
+                        lines.push('');
+                        lines.push('/ip firewall filter');
+                        lines.push(isVi
+                            ? `# Layer7 drop (TCP/80). Nếu cần chặn HTTPS, ưu tiên tls-host / addr-list.`
+                            : `# Layer7 drop (TCP/80). If you need HTTPS blocking, prefer tls-host / addr-list.`);
+                        lines.push(`add chain=forward action=drop comment="${tag}: layer7 drop tcp/80" protocol=tcp dst-port=80 ${inIfListProp}=${lanList} layer7-protocol="${l7Name}" ${disabledFlag}`);
+                        lines.push('');
+                    }
+
+                    lines.push(isVi
+                        ? '# 3) Script bật/tắt (toggle rule theo comment)'
+                        : '# 3) Enable/disable helper scripts (toggle rules by comment)');
+                    lines.push('/system script');
+                    lines.push(`:if ([:len [find name="${enableScriptName}"]] > 0) do={ remove [find name="${enableScriptName}"] }`);
+                    lines.push(`:if ([:len [find name="${disableScriptName}"]] > 0) do={ remove [find name="${disableScriptName}"] }`);
+                    lines.push(`add name="${enableScriptName}" policy=read,write,test source="`);
+                    lines.push(`  :local n 0;`);
+                    lines.push(`  :foreach i in=[/ip firewall filter find comment~\\"^${tag}:\\"] do={ /ip firewall filter enable $i; :set n ($n+1); }`);
+                    lines.push(`  :foreach i in=[/ip firewall raw find comment~\\"^${tag}:\\"] do={ /ip firewall raw enable $i; :set n ($n+1); }`);
+                    lines.push(`  :foreach i in=[/ip firewall layer7-protocol find comment~\\"^${tag}:\\"] do={ /ip firewall layer7-protocol enable $i; :set n ($n+1); }`);
+                    lines.push(`  :log info \\"${tag}: enabled rules=\\".$n;`);
+                    lines.push(`"`);
+                    lines.push(`add name="${disableScriptName}" policy=read,write,test source="`);
+                    lines.push(`  :local n 0;`);
+                    lines.push(`  :foreach i in=[/ip firewall filter find comment~\\"^${tag}:\\"] do={ /ip firewall filter disable $i; :set n ($n+1); }`);
+                    lines.push(`  :foreach i in=[/ip firewall raw find comment~\\"^${tag}:\\"] do={ /ip firewall raw disable $i; :set n ($n+1); }`);
+                    lines.push(`  :foreach i in=[/ip firewall layer7-protocol find comment~\\"^${tag}:\\"] do={ /ip firewall layer7-protocol disable $i; :set n ($n+1); }`);
+                    lines.push(`  :log info \\"${tag}: disabled rules=\\".$n;`);
+                    lines.push(`"`);
+                    lines.push('');
+
+                    if (useSchedule) {
+                        lines.push(isVi ? '# 4) Scheduler (hàng ngày)' : '# 4) Scheduler (daily)');
+                        lines.push('/system scheduler');
+                        lines.push(`:if ([:len [find name="${schedEnableName}"]] > 0) do={ remove [find name="${schedEnableName}"] }`);
+                        lines.push(`:if ([:len [find name="${schedDisableName}"]] > 0) do={ remove [find name="${schedDisableName}"] }`);
+                        lines.push(`add name="${schedEnableName}" start-time=${startTime} interval=1d on-event="/system script run ${enableScriptName}" disabled=no`);
+                        lines.push(`add name="${schedDisableName}" start-time=${endTime} interval=1d on-event="/system script run ${disableScriptName}" disabled=no`);
+                        lines.push('');
+                    } else {
+                        lines.push(isVi ? '# 4) Scheduler (tuỳ chọn)' : '# 4) Scheduler (optional)');
+                        lines.push(isVi
+                            ? '# Đang tắt trong UI. Nếu muốn, bật "schedule" và đặt start/end time.'
+                            : '# Disabled in UI. If you want, enable "schedule" and set start/end time.');
+                        lines.push('');
+                    }
+
+                    lines.push(isVi ? '# Hoàn tất.' : '# Done.');
+                    return lines.join('\n');
+                }
+            },
+            methods: {
+                toggleLang() {
+                    if (typeof MikrotikLang !== 'undefined') this.lang = MikrotikLang.toggle();
+                    else this.lang = this.lang === 'vi' ? 'en' : 'vi';
+                },
+                toggleTheme() {
+                    if (typeof MikrotikTheme !== 'undefined') MikrotikTheme.toggle();
+                    this.theme = typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light';
+                },
+                toast() {
+                    this.showToast = true;
+                    setTimeout(() => { this.showToast = false; }, 2500);
+                },
+                copyText(id) {
+                    const el = document.getElementById(id);
+                    const txt = el ? el.innerText : '';
+                    navigator.clipboard.writeText(txt);
+                    this.toast();
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
+

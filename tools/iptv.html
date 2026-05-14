@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <script>(function(){try{var k=localStorage.getItem('mikrotik-theme');var d=false;if(k==='dark')d=true;else if(k!=='light'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)d=true;if(d)document.documentElement.classList.add('theme-dark');}catch(e){}})();</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>IPTV MikroTik (Việt Nam) — VLAN và IGMP proxy | Zakshin</title>
+    <meta name="description" content="Tạo script RouterOS cho IPTV các nhà mạng Việt Nam: VLAN trên cổng WAN, DHCP nếu cần, IGMP proxy nối VLAN IPTV với bridge LAN. Chỉ tham khảo — chỉnh theo nhà mạng.">
+    <meta name="keywords" content="MikroTik, IPTV, VLAN, IGMP proxy, RouterOS, Việt Nam, Zakshin">
+    <meta name="author" content="Nghĩa Zakshin">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="https://mikrotik.hainghia.net/iptv">
+    <link rel="alternate" hreflang="vi" href="https://mikrotik.hainghia.net/iptv">
+    <link rel="alternate" hreflang="en" href="https://mikrotik.hainghia.net/iptv">
+    <link rel="alternate" hreflang="x-default" href="https://mikrotik.hainghia.net/iptv">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="../sitemap.xml">
+    <link rel="icon" type="image/png" href="../Logo.png">
+    <link rel="apple-touch-icon" href="../Logo.png">
+    <link rel="manifest" href="../site.webmanifest">
+    <meta name="theme-color" content="#f5f7fa">
+    <meta name="format-detection" content="telephone=no">
+
+    <meta property="og:site_name" content="MikroTik Tools — Zakshin">
+    <meta property="og:title" content="IPTV MikroTik — VLAN &amp; IGMP proxy | Zakshin">
+    <meta property="og:description" content="Script mẫu IPTV Việt Nam: VLAN WAN, DHCP VLAN, IGMP proxy — chỉnh theo ISP.">
+    <meta property="og:url" content="https://mikrotik.hainghia.net/iptv">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:image" content="https://mikrotik.hainghia.net/Logo.png">
+    <meta property="og:image:alt" content="MikroTik IPTV helper">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="IPTV MikroTik | Zakshin">
+    <meta name="twitter:description" content="Generator script VLAN IPTV và IGMP proxy cho RouterOS.">
+    <meta name="twitter:image" content="https://mikrotik.hainghia.net/Logo.png">
+
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@graph":[
+      {"@type":"WebApplication","name":"IPTV MikroTik (Việt Nam)","url":"https://mikrotik.hainghia.net/iptv","applicationCategory":"NetworkingApplication","operatingSystem":"Web Browser","browserRequirements":"Requires JavaScript.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"Nghĩa Zakshin","url":"https://github.com/ZakShinn"},"description":"Script mẫu IPTV VLAN và IGMP proxy cho MikroTik RouterOS."},
+      {"@type":"BreadcrumbList","itemListElement":[
+        {"@type":"ListItem","position":1,"name":"Trang chủ","item":"https://mikrotik.hainghia.net/"},
+        {"@type":"ListItem","position":2,"name":"IPTV","item":"https://mikrotik.hainghia.net/iptv"}
+      ]}
+    ]}
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../assets/site.css">
+    <script src="../assets/theme-ui.js"></script>
+    <script src="../assets/lang-ui.js"></script>
+    <script type="application/json" id="seo-i18n-data">{"en":{"title":"IPTV on MikroTik (Vietnam ISPs) — VLAN & IGMP proxy | Zakshin","description":"Generate RouterOS starter scripts for IPTV (Vietnam-focused): IPTV VLAN on WAN, optional DHCP, and IGMP proxy toward the LAN bridge. Reference only — adjust per ISP.","keywords":"MikroTik, IPTV, VLAN, IGMP proxy, RouterOS, Vietnam, Zakshin","ogTitle":"IPTV on MikroTik — VLAN & IGMP proxy | Zakshin","ogDesc":"Starter VLAN/IGMP proxy wiring for IPTV — tune for your ISP.","twitterTitle":"IPTV on MikroTik | Zakshin","twitterDesc":"VLAN IPTV and IGMP proxy script ideas for RouterOS.","ogImageAlt":"MikroTik IPTV helper"}}</script>
+    <script src="../assets/seo-i18n.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="app-shell">
+    <div class="noise" aria-hidden="true"></div>
+    <div id="app" class="app-shell">
+        <div v-if="showToast" class="toast-msg"><i class="fas fa-check-circle text-success mr-2"></i> {{ t.ui.copied }}</div>
+
+        <nav class="tool-nav">
+            <div class="tool-nav-inner">
+                <div class="tool-nav-row">
+                    <div class="tool-nav-brand">
+                        <a href="/" class="btn btn-ghost btn-sm btn-icon" title="Trang chủ" aria-label="Trang chủ"><i class="fas fa-home"></i></a>
+                        <span class="tool-nav-logo" aria-hidden="true"><img src="../Logo.png" alt="" width="34" height="34" decoding="async"></span>
+                        <h1 class="tool-nav-title"><i class="fas fa-tv accent-icon"></i> IPTV</h1>
+                    </div>
+                    <div class="tool-nav-actions">
+                        <button type="button" class="btn btn-ghost btn-sm btn-icon" @click="toggleTheme" :aria-label="theme === 'dark' ? t.ui.themeLight : t.ui.themeDark" :title="theme === 'dark' ? t.ui.themeLight : t.ui.themeDark">
+                            <i :class="theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" class="btn btn-ghost btn-sm" @click="toggleLang">
+                            <i class="fas fa-globe mr-1"></i> {{ lang === 'vi' ? 'English' : 'Tiếng Việt' }}
+                        </button>
+                    </div>
+                    <div class="tool-nav-meta">
+                        <div><strong>Nghĩa Zakshin</strong></div>
+                        <div class="tool-nav-meta-sub">MikroTik Tools</div>
+                        <div class="tool-nav-meta-sub"><i class="fas fa-circle-check mr-1"></i> {{ t.ui.testedOn }}</div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="tool-main">
+            <div class="layout-split">
+                <section class="panel nat-panel-form">
+                    <h2 class="section-title mb-sm"><i class="fas fa-sliders-h mr-2"></i> {{ t.ui.serverConfig }}</h2>
+                    <p class="scope-line">{{ t.ui.scopeLine }}</p>
+
+                    <div v-for="field in fieldsList" :key="field" class="field">
+                        <label class="label">
+                            {{ t.labels[field] }}
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels[field] }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}</span><span class="t-val">{{ t.hints[field].aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}</span><span class="t-val">{{ t.hints[field].type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}</span><span class="t-val"><span class="tip-def">{{ t.hints[field].def }}</span></span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control"><input class="input" v-model="form[field]"></div>
+                    </div>
+
+                    <div class="field">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.addDhcpClient">
+                            <span class="checkbox-text">{{ t.ui.addDhcpClient }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.ui.addDhcpClientTip }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="isp-vlan-ref">
+                        <p class="label mb-4"><i class="fas fa-network-wired accent-icon mr-1"></i> {{ t.ui.ispVlanTitle }}</p>
+                        <table class="data-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>{{ t.ui.ispCol }}</th>
+                                    <th>{{ t.ui.vlanCol }}</th>
+                                    <th>{{ t.ui.noteCol }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="row in t.ui.ispVlanRows" :key="row.isp">
+                                    <td class="fw-semibold">{{ row.isp }}</td>
+                                    <td><code>{{ row.vlan }}</code></td>
+                                    <td>{{ row.note }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="panel panel-script nat-panel-script">
+                    <div class="code-container">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:.5rem">
+                            <div style="font-weight:700; color:var(--text)"><i class="fas fa-terminal mr-2"></i> {{ t.ui.scriptTitle }}</div>
+                            <button type="button" class="btn btn-dark btn-sm copy-btn" @click="copyText('main-script')"><i class="fas fa-copy mr-1"></i> {{ t.ui.copy }}</button>
+                        </div>
+                        <pre id="main-script" class="script-pre">{{ scriptBody }}</pre>
+                    </div>
+                    <div class="callout mb-0">
+                        <strong><i class="fas fa-info-circle mr-1"></i></strong> {{ t.ui.note }}
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        const i18n = {
+            vi: {
+                labels: {
+                    comment: 'Nhãn (comment)',
+                    wanPort: 'Cổng WAN gắn VLAN',
+                    vlanId: 'Số VLAN IPTV',
+                    vlanName: 'Tên VLAN trên router',
+                    bridgeName: 'Bridge chứa cổng TV'
+                },
+                hints: {
+                    comment: { aim: 'Hiện trong comment các lệnh — đặt ngắn gọn để sau này đọc config dễ nhận.', type: 'Chữ', def: 'IPTV' },
+                    wanPort: { aim: 'Tên cổng đang nối modem/ONT (nơi tạo VLAN IPTV).', type: 'Tên cổng', def: 'ether1' },
+                    vlanId: { aim: 'Do nhà mạng cấp (hợp đồng / tổng đài). Bảng dưới chỉ là ví dụ — không copy mù quáng.', type: 'Số', def: '4000' },
+                    vlanName: { aim: 'Tên interface VLAN bạn tự đặt trên MikroTik (VD vlan-iptv).', type: 'Chữ', def: 'vlan-iptv' },
+                    bridgeName: { aim: 'Bridge LAN đã có sẵn; đầu thu TV cắm port thuộc bridge này. Script không tạo bridge mới.', type: 'Chữ', def: 'bridgeLAN' }
+                },
+                ui: {
+                    serverConfig: 'Thông số',
+                    scriptTitle: 'Script RouterOS',
+                    copy: 'Copy script',
+                    scopeLine: 'Gợi ý cho nhà mạng Việt Nam — VLAN và chính sách nước ngoài khác hẳn.',
+                    tipDetails: 'Chi tiết',
+                    addDhcpClient: 'Xin IP bằng DHCP trên VLAN IPTV',
+                    addDhcpClientTip: 'Bật khi ISP cấp IP động trên VLAN IPTV. Tắt nếu dùng IP tĩnh hoặc không cần dhcp-client trên VLAN đó.',
+                    note: 'Bridge LAN phải có sẵn. Xác nhận VLAN đúng với ISP trước khi dán; có thể phải chỉnh firewall.',
+                    copied: 'Đã sao chép!',
+                    tipAim: 'Giải thích',
+                    tipType: 'Dạng',
+                    tipDef: 'Ví dụ',
+                    ispVlanTitle: 'Số VLAN thường gặp (chỉ tham khảo)',
+                    ispCol: 'Nhà mạng', vlanCol: 'VLAN', noteCol: 'Lưu ý',
+                    ispVlanRows: [
+                        { isp: 'Viettel', vlan: '2502', note: 'Nhiều nơi dùng cho IPTV.' },
+                        { isp: 'FPT', vlan: '—', note: 'Mỗi vùng khác nhau; hỏi nhà mạng (có nơi dùng 4000).' },
+                        { isp: 'VNPT', vlan: '—', note: 'Tùy tỉnh; hỏi nhà mạng lấy đúng số VLAN.' }
+                    ],
+                    testedOn: 'Đã test ổn định trên RouterOS v7.22',
+                    themeDark: 'Giao diện tối',
+                    themeLight: 'Giao diện sáng',
+                    scriptLines: {
+                        dhcpBlockIntro: 'DHCP trên VLAN IPTV (bỏ qua nếu ISP gán IP cố định trên VLAN này)',
+                        line1: '# IPTV (nhà mạng VN) — {{tag}}',
+                        line2: '# VLAN IPTV trên cổng WAN — số VLAN do ISP cấp (VD Viettel 2502)',
+                        igmpIntro: '# IGMP proxy: VLAN IPTV = hướng ISP; bridge LAN = hướng TV/đầu thu (bridge phải có sẵn)'
+                    }
+                }
+            },
+            en: {
+                labels: {
+                    comment: 'Comment tag',
+                    wanPort: 'WAN port for VLAN',
+                    vlanId: 'IPTV VLAN ID',
+                    vlanName: 'VLAN interface name',
+                    bridgeName: 'LAN bridge with TVs'
+                },
+                hints: {
+                    comment: { aim: 'Printed inside script comments so you can grep your IPTV section later.', type: 'Text', def: 'IPTV' },
+                    wanPort: { aim: 'Physical/logical WAN interface facing the modem/ONT.', type: 'Port name', def: 'ether1' },
+                    vlanId: { aim: 'Provided by the ISP (support/contract). The table below is hints only.', type: 'Number', def: '4000' },
+                    vlanName: { aim: 'Whatever you want the RouterOS VLAN interface to be called.', type: 'Text', def: 'vlan-iptv' },
+                    bridgeName: { aim: 'Existing LAN bridge where STBs live. This script never creates the bridge.', type: 'Text', def: 'bridgeLAN' }
+                },
+                ui: {
+                    serverConfig: 'Parameters',
+                    scriptTitle: 'RouterOS script',
+                    copy: 'Copy script',
+                    scopeLine: 'Vietnam ISP reference only — other regions differ.',
+                    tipDetails: 'Details',
+                    addDhcpClient: 'DHCP client on IPTV VLAN',
+                    addDhcpClientTip: 'Turn on when the ISP uses DHCP on that VLAN. Turn off for static VLAN setups or when you manage addressing manually.',
+                    note: 'Create/verify the LAN bridge first. Confirm VLAN IDs with the ISP; firewall tweaks may still be needed.',
+                    copied: 'Copied!',
+                    tipAim: 'Explain',
+                    tipType: 'Kind',
+                    tipDef: 'Example',
+                    ispVlanTitle: 'Common VLAN IDs (reference only)',
+                    ispCol: 'ISP', vlanCol: 'VLAN', noteCol: 'Note',
+                    ispVlanRows: [
+                        { isp: 'Viettel', vlan: '2502', note: 'Widely used for IPTV in Vietnam.' },
+                        { isp: 'FPT', vlan: '—', note: 'Varies by area; ask the ISP (4000 in some places).' },
+                        { isp: 'VNPT', vlan: '—', note: 'Varies by province; ask the ISP for the VLAN.' }
+                    ],
+                    testedOn: 'Tested stable on RouterOS v7.22',
+                    themeDark: 'Dark theme',
+                    themeLight: 'Light theme',
+                    scriptLines: {
+                        dhcpBlockIntro: 'DHCP on IPTV VLAN (skip if your ISP uses a fixed IP on this VLAN)',
+                        line1: '# IPTV (Vietnam ISP) — {{tag}}',
+                        line2: '# IPTV VLAN on WAN — VLAN ID from your ISP (e.g. Viettel 2502)',
+                        igmpIntro: '# IGMP proxy: IPTV VLAN = toward ISP; LAN bridge = toward TVs / STBs (bridge must exist)'
+                    }
+                }
+            }
+        };
+
+        createApp({
+            data() {
+                return {
+                    lang: typeof MikrotikLang !== 'undefined' ? MikrotikLang.get() : 'vi',
+                    theme: typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light',
+                    showToast: false,
+                    fieldsList: ['comment', 'wanPort', 'vlanId', 'vlanName', 'bridgeName'],
+                    form: {
+                        comment: 'IPTV',
+                        wanPort: 'ether1',
+                        vlanId: '4000',
+                        vlanName: 'vlan-iptv',
+                        bridgeName: 'bridgeLAN',
+                        addDhcpClient: true
+                    }
+                };
+            },
+            computed: {
+                t() { return i18n[this.lang]; },
+                scriptBody() {
+                    const L = this.t.ui.scriptLines;
+                    const c = this.form.comment || 'IPTV';
+                    const dhcp = this.form.addDhcpClient
+                        ? `# ${L.dhcpBlockIntro}
+/ip dhcp-client add interface=${this.form.vlanName} use-peer-dns=no add-default-route=no disabled=no comment="IPTV DHCP — ${c}"
+
+`
+                        : '';
+                    const header = `${L.line1.split('{{tag}}').join(c)}\n${L.line2}`;
+                    return `${header}
+/interface vlan add name=${this.form.vlanName} vlan-id=${this.form.vlanId} interface=${this.form.wanPort} comment="IPTV VLAN — ${c}"
+
+${dhcp}${L.igmpIntro}
+/routing igmp-proxy interface add interface=${this.form.vlanName} upstream=yes alternative-subnets=0.0.0.0/0 comment="IPTV upstream — ${c}"
+/routing igmp-proxy interface add interface=${this.form.bridgeName} upstream=no comment="IPTV LAN — ${c}"
+/routing igmp-proxy set quick-leave=yes`;
+                }
+            },
+            methods: {
+                toggleLang() {
+                    if (typeof MikrotikLang !== 'undefined') this.lang = MikrotikLang.toggle();
+                    else this.lang = this.lang === 'vi' ? 'en' : 'vi';
+                },
+                toggleTheme() {
+                    if (typeof MikrotikTheme !== 'undefined') MikrotikTheme.toggle();
+                    this.theme = typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light';
+                },
+                toast() {
+                    this.showToast = true;
+                    setTimeout(() => { this.showToast = false; }, 2500);
+                },
+                copyText(id) {
+                    const el = document.getElementById(id);
+                    const txt = el ? el.innerText : '';
+                    navigator.clipboard.writeText(txt);
+                    this.toast();
+                }
+            },
+            mounted() {
+                const onTheme = (e) => { this.theme = e.detail.theme; };
+                window.addEventListener('mikrotik-theme-effective-change', onTheme);
+                this._offTheme = () => window.removeEventListener('mikrotik-theme-effective-change', onTheme);
+            },
+            beforeUnmount() {
+                if (this._offTheme) this._offTheme();
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

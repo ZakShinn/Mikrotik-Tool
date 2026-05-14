@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <script>(function(){try{if(localStorage.getItem('mikrotik-theme')==='dark')document.documentElement.classList.add('theme-dark');}catch(e){}})();</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Định tuyến (Policy Routing) — MikroTik Tools | Zakshin</title>
+    <meta name="description" content="Tool sinh script RouterOS để định tuyến (policy routing) theo subnet/nguồn qua PPPoE/ether/VPN (WireGuard/L2TP/OVPN...). Copy-paste chạy trên MikroTik.">
+    <meta name="keywords" content="MikroTik, RouterOS, policy routing, routing table, routing rule, pppoe-out, wireguard, vpn">
+    <meta name="author" content="Nghĩa Zakshin">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="https://mikrotik.hainghia.net/routing">
+    <link rel="alternate" hreflang="vi" href="https://mikrotik.hainghia.net/routing">
+    <link rel="alternate" hreflang="en" href="https://mikrotik.hainghia.net/routing">
+    <link rel="alternate" hreflang="x-default" href="https://mikrotik.hainghia.net/routing">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="../sitemap.xml">
+    <link rel="icon" type="image/png" href="../Logo.png">
+    <link rel="apple-touch-icon" href="../Logo.png">
+    <link rel="manifest" href="../site.webmanifest">
+    <meta name="theme-color" content="#f5f7fa">
+    <meta name="format-detection" content="telephone=no">
+
+    <meta property="og:site_name" content="MikroTik Tools — Zakshin">
+    <meta property="og:title" content="Định tuyến (Policy Routing) — MikroTik Tools | Zakshin">
+    <meta property="og:description" content="Sinh script RouterOS để định tuyến theo nguồn qua PPPoE/ether/VPN (routing table + rule).">
+    <meta property="og:url" content="https://mikrotik.hainghia.net/routing">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:image" content="https://mikrotik.hainghia.net/Logo.png">
+    <meta property="og:image:alt" content="MikroTik Routing tool">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Policy Routing — MikroTik Tools | Zakshin">
+    <meta name="twitter:description" content="Generate RouterOS policy routing scripts (pppoe/ether/vpn).">
+    <meta name="twitter:image" content="https://mikrotik.hainghia.net/Logo.png">
+
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@graph":[
+      {"@type":"WebApplication","name":"Định tuyến (Policy Routing) — MikroTik Tools","url":"https://mikrotik.hainghia.net/routing","applicationCategory":"NetworkingApplication","operatingSystem":"Web Browser","browserRequirements":"Requires JavaScript.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"Nghĩa Zakshin","url":"https://github.com/ZakShinn"},"description":"Sinh script RouterOS để policy routing theo subnet/nguồn qua PPPoE/ether/VPN."},
+      {"@type":"BreadcrumbList","itemListElement":[
+        {"@type":"ListItem","position":1,"name":"Trang chủ","item":"https://mikrotik.hainghia.net/"},
+        {"@type":"ListItem","position":2,"name":"Định tuyến (Policy Routing)","item":"https://mikrotik.hainghia.net/routing"}
+      ]}
+    ]}
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../assets/site.css">
+    <script src="../assets/theme-ui.js"></script>
+    <script src="../assets/lang-ui.js"></script>
+    <script type="application/json" id="seo-i18n-data">{"en":{"title":"Policy routing on MikroTik — RouterOS script generator | Zakshin","description":"Generate RouterOS policy routing scripts: send selected source subnets via PPPoE, Ethernet, or VPN (WireGuard/L2TP/OpenVPN, etc.). Routing table + rules (v7) output for copy/paste.","keywords":"MikroTik, RouterOS, policy routing, routing table, routing rule, pppoe-out, wireguard, vpn","ogTitle":"Policy routing — MikroTik Tools | Zakshin","ogDesc":"Source-based routing via PPPoE/ether/VPN — table + rules.","twitterTitle":"Policy routing — MikroTik | Zakshin","twitterDesc":"RouterOS policy routing script generator.","ogImageAlt":"MikroTik Routing tool"}}</script>
+    <script src="../assets/seo-i18n.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="app-shell">
+    <div class="noise" aria-hidden="true"></div>
+    <div id="app" class="app-shell">
+        <div v-if="showToast" class="toast-msg"><i class="fas fa-check-circle text-success mr-2"></i> {{ t.ui.copied }}</div>
+
+        <nav class="tool-nav">
+            <div class="tool-nav-inner">
+                <div class="tool-nav-row">
+                    <div class="tool-nav-brand">
+                        <a href="/" class="btn btn-ghost btn-sm btn-icon" :title="t.ui.home" :aria-label="t.ui.home"><i class="fas fa-home"></i></a>
+                        <span class="tool-nav-logo" aria-hidden="true"><img src="../Logo.png" alt="" width="34" height="34" decoding="async"></span>
+                        <h1 class="tool-nav-title"><i class="fas fa-route accent-icon"></i> {{ t.ui.title }}</h1>
+                    </div>
+                    <div class="tool-nav-actions">
+                        <button type="button" class="btn btn-ghost btn-sm btn-icon" @click="toggleTheme" :aria-label="theme === 'dark' ? t.ui.themeLight : t.ui.themeDark" :title="theme === 'dark' ? t.ui.themeLight : t.ui.themeDark">
+                            <i :class="theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" class="btn btn-ghost btn-sm" @click="toggleLang">
+                            <i class="fas fa-globe mr-1"></i> {{ lang === 'vi' ? 'English' : 'Tiếng Việt' }}
+                        </button>
+                    </div>
+                    <div class="tool-nav-meta">
+                        <div><strong>Nghĩa Zakshin</strong></div>
+                        <div class="tool-nav-meta-sub">MikroTik Tools</div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="tool-main">
+            <div class="layout-split">
+                <section class="panel">
+                    <h2 class="section-title"><i class="fas fa-sliders-h mr-2"></i> {{ t.ui.config }}</h2>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.labels.rosVersion }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.rosVersion }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.rosVersion.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.rosVersion.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.rosVersion.def }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <div class="select">
+                                <select v-model="form.rosVersion">
+                                    <option value="v7">RouterOS v7+ (routing table + routing rule)</option>
+                                    <option value="v6">RouterOS v6 (mangle mark-routing)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.labels.uplinkIf }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.uplinkIf }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.uplinkIf.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.uplinkIf.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.uplinkIf.def }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <input class="input" v-model="form.uplinkIf" placeholder="pppoe-out1 / ether1 / wg0">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.labels.gateway }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.gateway }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.gateway.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.gateway.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.gateway.def }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <input class="input" v-model="form.gateway" placeholder="pppoe-out1 / wg0 / 1.1.1.1">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.labels.tableName }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.tableName }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.tableName.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.tableName.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.tableName.def }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <input class="input" v-model="form.tableName" placeholder="to_vpn">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.labels.srcList }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.srcList }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.srcList.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.srcList.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="t-val"><span class="tip-def">{{ t.hints.srcList.def }}</span></span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <textarea class="input" v-model="form.srcList" rows="7" style="resize:vertical" placeholder="192.168.88.0/24&#10;192.168.99.10/32"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.addMasq">
+                            <span class="checkbox-text">{{ t.labels.addMasq }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.hints.addMasq }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="field">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.lookupOnly">
+                            <span class="checkbox-text">{{ t.labels.lookupOnly }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.hints.lookupOnly }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="callout mb-0">
+                        <strong><i class="fas fa-triangle-exclamation mr-1"></i></strong> {{ t.ui.warn }}
+                    </div>
+                </section>
+
+                <section class="panel panel-script">
+                    <div class="code-container">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:.5rem">
+                            <div style="font-weight:700; color:var(--text)"><i class="fas fa-terminal mr-2"></i> {{ t.ui.script }}</div>
+                            <button type="button" class="btn btn-dark btn-sm copy-btn" @click="copyText('main-script')"><i class="fas fa-copy mr-1"></i> {{ t.ui.copy }}</button>
+                        </div>
+                        <pre id="main-script" class="script-pre">{{ generatedScript }}</pre>
+                    </div>
+                    <div class="callout mb-0">
+                        <strong><i class="fas fa-info-circle mr-1"></i></strong> {{ t.ui.note }}
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        const i18n = {
+            vi: {
+                ui: {
+                    title: 'Định tuyến (Policy Routing)',
+                    config: 'Thông số',
+                    script: 'Script RouterOS',
+                    copy: 'Copy script',
+                    copied: 'Đã sao chép!',
+                    themeDark: 'Giao diện tối',
+                    themeLight: 'Giao diện sáng',
+                    home: 'Trang chủ',
+                    tipDetails: 'Chi tiết',
+                    tipAim: 'Giải thích',
+                    tipType: 'Kiểu',
+                    tipDef: 'Ví dụ',
+                    warn: 'Script này là gợi ý. Dán trên router đang chạy nên test trong Safe Mode. Policy routing dễ gây “mất mạng” nếu route/rule sai.',
+                    note: 'Gợi ý: Nếu bạn đang dùng WAN DHCP (ether1), gateway thường là IP (ví dụ 192.168.1.1) chứ không phải tên interface. PPPoE/WireGuard thường dùng được gateway là tên interface (pppoe-out1/wg0).'
+                },
+                labels: {
+                    rosVersion: 'Phiên bản RouterOS',
+                    uplinkIf: 'Interface đường ra (out)',
+                    gateway: 'Gateway cho default route trong bảng này',
+                    tableName: 'Tên routing table / routing-mark',
+                    srcList: 'Danh sách nguồn (src-address) áp policy',
+                    addMasq: 'Thêm NAT masquerade theo out-interface',
+                    lookupOnly: 'Chỉ lookup trong table (không fallback main)'
+                },
+                hints: {
+                    rosVersion: { aim: 'Chọn cách sinh script tương ứng RouterOS v7/v6.', type: 'Chọn', def: 'v7 (khuyến nghị)' },
+                    uplinkIf: { aim: 'Interface sẽ dùng làm “đường ra” khi tạo rule/route (tùy ROS version).', type: 'Tên interface', def: 'pppoe-out1 / ether1 / wg0' },
+                    gateway: { aim: 'Gateway cho default route trong table. Có thể là tên interface (PPPoE/WG) hoặc IP gateway (DHCP WAN). Nếu trống sẽ dùng uplink interface.', type: 'Tên interface / IPv4', def: 'pppoe-out1 / 192.168.1.1' },
+                    tableName: { aim: 'Tên routing table (v7) hoặc routing-mark (v6). Tránh dấu cách.', type: 'Chữ', def: 'to_vpn' },
+                    srcList: { aim: 'Các nguồn (src-address) sẽ bị ép đi theo table này. Mỗi dòng 1 CIDR/IP.', type: 'Danh sách CIDR', def: '192.168.88.0/24\n192.168.99.10/32' },
+                    addMasq: 'Chỉ bật nếu bạn cần NAT riêng cho đường ra này và chắc chắn không bị trùng rule masquerade hiện có.',
+                    lookupOnly: 'Bật = chỉ lookup trong table này (không fallback main). Tắt = nếu không khớp, RouterOS có thể fallback sang main.'
+                }
+            },
+            en: {
+                ui: {
+                    title: 'Policy Routing',
+                    config: 'Parameters',
+                    script: 'RouterOS script',
+                    copy: 'Copy script',
+                    copied: 'Copied!',
+                    themeDark: 'Dark theme',
+                    themeLight: 'Light theme',
+                    home: 'Home',
+                    tipDetails: 'Details',
+                    tipAim: 'Explain',
+                    tipType: 'Type',
+                    tipDef: 'Example',
+                    warn: 'Starter template. Test in Safe Mode. Policy routing can break connectivity if routes/rules are wrong.',
+                    note: 'Tip: If your WAN is DHCP on ether1, the gateway is usually an IP (e.g., 192.168.1.1), not the interface name. PPPoE/WireGuard often works with interface-as-gateway (pppoe-out1/wg0).'
+                },
+                labels: {
+                    rosVersion: 'RouterOS version',
+                    uplinkIf: 'Egress interface (out)',
+                    gateway: 'Gateway for the table default route',
+                    tableName: 'Routing table / routing-mark name',
+                    srcList: 'Source list (src-address) to apply policy',
+                    addMasq: 'Add NAT masquerade for this out-interface',
+                    lookupOnly: 'Lookup-only-in-table (no main fallback)'
+                },
+                hints: {
+                    rosVersion: { aim: 'Select script mode for RouterOS v7 vs v6.', type: 'Select', def: 'v7 (recommended)' },
+                    uplinkIf: { aim: 'Egress interface name used by generated rules/routes (depending on ROS version).', type: 'Interface name', def: 'pppoe-out1 / ether1 / wg0' },
+                    gateway: { aim: 'Gateway for the table default route. Can be an interface name (PPPoE/WG) or a gateway IP (DHCP WAN). If empty, falls back to the uplink interface.', type: 'Interface name / IPv4', def: 'pppoe-out1 / 192.168.1.1' },
+                    tableName: { aim: 'Routing table name (v7) or routing-mark (v6). Avoid spaces.', type: 'Text', def: 'to_vpn' },
+                    srcList: { aim: 'Source addresses forced into this table. One CIDR/IP per line.', type: 'CIDR list', def: '192.168.88.0/24\n192.168.99.10/32' },
+                    addMasq: 'Enable only if you need a dedicated masquerade rule and you are sure it won’t duplicate existing NAT.',
+                    lookupOnly: 'On = lookup only in this table (no main fallback). Off = allow fallback to main if this table has no suitable route.'
+                }
+            }
+        };
+
+        function uniqLines(text) {
+            const out = [];
+            const seen = new Set();
+            for (const raw of String(text || '').split('\n')) {
+                const s = raw.replace(/#.*/g, '').trim();
+                if (!s) continue;
+                if (seen.has(s)) continue;
+                seen.add(s);
+                out.push(s);
+            }
+            return out;
+        }
+
+        function safeName(value, fallback) {
+            const v = String(value || '').trim();
+            if (!v) return fallback;
+            return v.replace(/\s+/g, '_');
+        }
+
+        createApp({
+            data() {
+                return {
+                    lang: typeof MikrotikLang !== 'undefined' ? MikrotikLang.get() : 'vi',
+                    theme: typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light',
+                    showToast: false,
+                    form: {
+                        rosVersion: 'v7',
+                        uplinkIf: 'pppoe-out1',
+                        gateway: 'pppoe-out1',
+                        tableName: 'to_vpn',
+                        srcList: '192.168.88.0/24',
+                        addMasq: false,
+                        lookupOnly: true
+                    }
+                };
+            },
+            computed: {
+                t() { return i18n[this.lang]; },
+                sources() {
+                    return uniqLines(this.form.srcList);
+                },
+                generatedScript() {
+                    const ros = this.form.rosVersion === 'v6' ? 'v6' : 'v7';
+                    const uplinkIf = String(this.form.uplinkIf || '').trim() || 'pppoe-out1';
+                    const gateway = String(this.form.gateway || '').trim() || uplinkIf;
+                    const tableName = safeName(this.form.tableName, 'to_vpn');
+                    const addMasq = !!this.form.addMasq;
+                    const lookupOnly = !!this.form.lookupOnly;
+                    const srcs = this.sources;
+                    const isVi = this.lang === 'vi';
+
+                    const lines = [];
+                    lines.push(isVi
+                        ? `# Định tuyến theo nguồn (tool-generated) — MikroTik Tools`
+                        : `# Policy routing (tool-generated) — MikroTik Tools`);
+                    lines.push(isVi
+                        ? `# RouterOS: ${ros} | table/mark: ${tableName} | uplink: ${uplinkIf} | gateway: ${gateway}`
+                        : `# RouterOS: ${ros} | table/mark: ${tableName} | uplink: ${uplinkIf} | gateway: ${gateway}`);
+                    lines.push('');
+
+                    if (!srcs.length) {
+                        lines.push(isVi
+                            ? '# GHI CHÚ: Chưa có nguồn nào. Hãy thêm ít nhất 1 CIDR/IP ở phần nhập.'
+                            : '# NOTE: No source entries. Add at least one CIDR/IP in the form.');
+                        lines.push('');
+                    }
+
+                    if (ros === 'v7') {
+                        lines.push(isVi ? '# 1) Routing table (bảng định tuyến)' : '# 1) Routing table');
+                        lines.push('/routing table');
+                        lines.push(`:if ([:len [find where name="${tableName}"]] = 0) do={ add fib name="${tableName}" }`);
+                        lines.push('');
+
+                        lines.push(isVi ? '# 2) Default route trong table đó' : '# 2) Default route in that table');
+                        lines.push('/ip route');
+                        lines.push(isVi
+                            ? `# Xoá default route cũ của table này (tuỳ chọn; giúp chạy lại ít lỗi trùng)`
+                            : `# Remove old default routes for this table (optional; keeps idempotent-ish)`);
+                        lines.push(`:foreach i in=[find where dst-address="0.0.0.0/0" and routing-table="${tableName}"] do={ remove $i }`);
+                        lines.push(`add dst-address=0.0.0.0/0 gateway=${gateway} routing-table=${tableName} comment="PR: ${tableName} default via ${gateway}"`);
+                        lines.push('');
+
+                        lines.push(isVi ? '# 3) Routing rules (policy)' : '# 3) Routing rules (policy)');
+                        lines.push('/routing rule');
+                        lines.push(isVi
+                            ? `# Dọn rule cũ do tool tạo (theo comment tag)`
+                            : `# Clean old rules created by this tool tag`);
+                        lines.push(`:foreach i in=[find where comment~"^PR: ${tableName} "] do={ remove $i }`);
+                        const action = lookupOnly ? 'lookup-only-in-table' : 'lookup';
+                        for (const s of srcs) {
+                            lines.push(`add src-address=${s} action=${action} table=${tableName} comment="PR: ${tableName} ${s}"`);
+                        }
+                        lines.push('');
+                    } else {
+                        lines.push(isVi
+                            ? '# Cách RouterOS v6: dùng mangle mark-routing + route routing-mark'
+                            : '# RouterOS v6 method: mangle mark-routing + routes with routing-mark');
+                        lines.push(isVi ? '# 1) Address-list cho danh sách nguồn' : '# 1) Address-list for sources');
+                        lines.push('/ip firewall address-list');
+                        lines.push(`:foreach i in=[find where list="PR_${tableName}_SRC"] do={ remove $i }`);
+                        for (const s of srcs) {
+                            lines.push(`add list="PR_${tableName}_SRC" address=${s} comment="PR: ${tableName} ${s}"`);
+                        }
+                        lines.push('');
+
+                        lines.push(isVi ? '# 2) Mangle: mark-routing' : '# 2) Mangle rules to mark routing');
+                        lines.push('/ip firewall mangle');
+                        lines.push(`:foreach i in=[find where comment~"^PR: ${tableName} "] do={ remove $i }`);
+                        lines.push(`add chain=prerouting action=mark-routing new-routing-mark=${tableName} passthrough=no src-address-list="PR_${tableName}_SRC" comment="PR: ${tableName} mark-routing"`);
+                        lines.push('');
+
+                        lines.push(isVi ? '# 3) Default route cho routing-mark' : '# 3) Default route for routing-mark');
+                        lines.push('/ip route');
+                        lines.push(`:foreach i in=[find where dst-address="0.0.0.0/0" and routing-mark="${tableName}"] do={ remove $i }`);
+                        lines.push(`add dst-address=0.0.0.0/0 gateway=${gateway} routing-mark=${tableName} comment="PR: ${tableName} default via ${gateway}"`);
+                        lines.push('');
+                    }
+
+                    if (addMasq) {
+                        lines.push(isVi ? '# 4) NAT masquerade (tuỳ chọn)' : '# 4) NAT masquerade (optional)');
+                        lines.push('/ip firewall nat');
+                        lines.push(isVi
+                            ? `# GHI CHÚ: Có thể bị trùng với rule masquerade hiện có. Hãy kiểm tra trước khi dán.`
+                            : `# NOTE: This may duplicate an existing masquerade rule. Review before applying.`);
+                        lines.push(`add chain=srcnat action=masquerade out-interface=${uplinkIf} comment="PR: masquerade via ${uplinkIf}"`);
+                        lines.push('');
+                    }
+
+                    lines.push(isVi ? '# Hoàn tất.' : '# Done.');
+                    return lines.join('\n');
+                }
+            },
+            methods: {
+                toggleLang() {
+                    if (typeof MikrotikLang !== 'undefined') this.lang = MikrotikLang.toggle();
+                    else this.lang = this.lang === 'vi' ? 'en' : 'vi';
+                },
+                toggleTheme() {
+                    if (typeof MikrotikTheme !== 'undefined') MikrotikTheme.toggle();
+                    this.theme = typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light';
+                },
+                toast() {
+                    this.showToast = true;
+                    setTimeout(() => { this.showToast = false; }, 2500);
+                },
+                copyText(id) {
+                    const el = document.getElementById(id);
+                    const txt = el ? el.innerText : '';
+                    navigator.clipboard.writeText(txt);
+                    this.toast();
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
+

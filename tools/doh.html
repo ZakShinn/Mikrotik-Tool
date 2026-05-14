@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <script>(function(){try{var k=localStorage.getItem('mikrotik-theme');var d=false;if(k==='dark')d=true;else if(k!=='light'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)d=true;if(d)document.documentElement.classList.add('theme-dark');}catch(e){}})();</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>DoH trên MikroTik — NextDNS/Cloudflare/Google/AdGuard/OpenDNS/Quad9 | Zakshin</title>
+    <meta name="description" content="Sinh script cấu hình DNS over HTTPS (DoH) cho MikroTik RouterOS 7+. Hỗ trợ NextDNS, Cloudflare, Google, AdGuard, OpenDNS và Quad9. Xử lý trên trình duyệt, copy vào Terminal.">
+    <meta name="keywords" content="MikroTik, RouterOS, NextDNS, Cloudflare, Google, AdGuard, OpenDNS, Quad9, DNS over HTTPS, DoH, DHCP DNS, Zakshin">
+    <meta name="author" content="Nghĩa Zakshin">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="https://mikrotik.hainghia.net/doh">
+    <link rel="alternate" hreflang="vi" href="https://mikrotik.hainghia.net/doh">
+    <link rel="alternate" hreflang="en" href="https://mikrotik.hainghia.net/doh">
+    <link rel="alternate" hreflang="x-default" href="https://mikrotik.hainghia.net/doh">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="../sitemap.xml">
+    <link rel="icon" type="image/png" href="../Logo.png">
+    <link rel="apple-touch-icon" href="../Logo.png">
+    <link rel="manifest" href="../site.webmanifest">
+    <meta name="theme-color" content="#f5f7fa">
+    <meta name="format-detection" content="telephone=no">
+
+    <meta property="og:site_name" content="MikroTik Tools — Zakshin">
+    <meta property="og:title" content="DoH trên MikroTik — nhiều provider | Zakshin">
+    <meta property="og:description" content="Sinh lệnh /ip dns DoH cho NextDNS, Cloudflare, Google, AdGuard, OpenDNS, Quad9 — RouterOS 7+.">
+    <meta property="og:url" content="https://mikrotik.hainghia.net/doh">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:image" content="https://mikrotik.hainghia.net/Logo.png">
+    <meta property="og:image:alt" content="MikroTik Tools — DoH DNS">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="DoH DNS trên MikroTik | Zakshin">
+    <meta name="twitter:description" content="Generator DoH cho RouterOS với nhiều provider — copy script.">
+    <meta name="twitter:image" content="https://mikrotik.hainghia.net/Logo.png">
+
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@graph":[
+      {"@type":"WebApplication","name":"DoH cho MikroTik","url":"https://mikrotik.hainghia.net/doh","applicationCategory":"NetworkingApplication","operatingSystem":"Web Browser","browserRequirements":"Requires JavaScript.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"Nghĩa Zakshin","url":"https://github.com/ZakShinn"},"description":"Sinh script DNS over HTTPS (DoH) cho MikroTik RouterOS 7+. Hỗ trợ NextDNS, Cloudflare, Google, AdGuard, OpenDNS và Quad9."},
+      {"@type":"BreadcrumbList","itemListElement":[
+        {"@type":"ListItem","position":1,"name":"Trang chủ","item":"https://mikrotik.hainghia.net/"},
+        {"@type":"ListItem","position":2,"name":"DoH DNS","item":"https://mikrotik.hainghia.net/doh"}
+      ]}
+    ]}
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../assets/site.css">
+    <script src="../assets/theme-ui.js"></script>
+    <script src="../assets/lang-ui.js"></script>
+    <script type="application/json" id="seo-i18n-data">{"en":{"title":"DNS over HTTPS (DoH) on MikroTik — NextDNS, Cloudflare, Google & more | Zakshin","description":"Generate DNS over HTTPS (DoH) scripts for MikroTik RouterOS 7+. NextDNS, Cloudflare, Google, AdGuard, OpenDNS, and Quad9 — processed in your browser; paste into Terminal.","keywords":"MikroTik, RouterOS, NextDNS, Cloudflare, Google, AdGuard, OpenDNS, Quad9, DNS over HTTPS, DoH, DHCP DNS, Zakshin","ogTitle":"DoH on MikroTik — multiple providers | Zakshin","ogDesc":"/ip dns DoH for NextDNS, Cloudflare, Google, AdGuard, OpenDNS, Quad9 — RouterOS 7+.","twitterTitle":"DoH DNS on MikroTik | Zakshin","twitterDesc":"DoH script generator for RouterOS with major providers.","ogImageAlt":"MikroTik Tools — DoH DNS"}}</script>
+    <script src="../assets/seo-i18n.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="app-shell">
+    <div class="noise" aria-hidden="true"></div>
+    <div id="app" class="app-shell">
+        <div v-if="showToast" class="toast-msg"><i class="fas fa-check-circle text-success mr-2"></i> {{ t.ui.copied }}</div>
+
+        <nav class="tool-nav">
+            <div class="tool-nav-inner">
+                <div class="tool-nav-row">
+                    <div class="tool-nav-brand">
+                        <a href="/" class="btn btn-ghost btn-sm btn-icon" title="Trang chủ" aria-label="Trang chủ"><i class="fas fa-home"></i></a>
+                        <span class="tool-nav-logo" aria-hidden="true"><img src="../Logo.png" alt="" width="34" height="34" decoding="async"></span>
+                        <h1 class="tool-nav-title"><i class="fas fa-filter accent-icon"></i> DoH DNS</h1>
+                    </div>
+                    <div class="tool-nav-actions">
+                        <button type="button" class="btn btn-ghost btn-sm btn-icon" @click="toggleTheme" :aria-label="theme === 'dark' ? t.ui.themeLight : t.ui.themeDark" :title="theme === 'dark' ? t.ui.themeLight : t.ui.themeDark">
+                            <i :class="theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" class="btn btn-ghost btn-sm" @click="toggleLang">
+                            <i class="fas fa-globe mr-1"></i> {{ lang === 'vi' ? 'English' : 'Tiếng Việt' }}
+                        </button>
+                    </div>
+                    <div class="tool-nav-meta">
+                        <div><strong>Nghĩa Zakshin</strong></div>
+                        <div class="tool-nav-meta-sub">MikroTik Tools</div>
+                        <div class="tool-nav-meta-sub"><i class="fas fa-circle-check mr-1"></i> {{ t.ui.testedOn }}</div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="tool-main">
+            <div class="layout-split">
+                <section class="panel nat-panel-form">
+                    <h2 class="section-title"><i class="fas fa-sliders-h mr-2"></i> {{ t.ui.serverConfig }}</h2>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.labels.provider }}
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.provider }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}</span><span class="t-val">{{ t.hints.provider.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}</span><span class="t-val">{{ t.hints.provider.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}</span><span class="t-val"><span class="tip-def">{{ t.hints.provider.def }}</span></span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <select class="input" v-model="form.provider">
+                                <option value="nextdns">NextDNS</option>
+                                <option value="cloudflare">Cloudflare DoH</option>
+                                <option value="google">Google DoH</option>
+                                <option value="adguard">AdGuard DNS</option>
+                                <option value="opendns">OpenDNS</option>
+                                <option value="quad9">Quad9</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <template v-if="form.provider === 'nextdns'">
+                        <div class="field">
+                            <label class="label">
+                                {{ t.labels.profile }}
+                                <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                    <span class="tip-content">
+                                        <span class="tip-header">{{ t.labels.profile }}</span>
+                                        <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}</span><span class="t-val">{{ t.hints.profile.aim }}</span></span>
+                                        <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}</span><span class="t-val">{{ t.hints.profile.type }}</span></span>
+                                        <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}</span><span class="t-val"><span class="tip-def">{{ t.hints.profile.def }}</span></span></span>
+                                    </span>
+                                </span>
+                            </label>
+                            <div class="control"><input class="input" v-model="form.profile" :placeholder="t.hints.profile.def"></div>
+                        </div>
+                        <div class="field">
+                            <label class="label">
+                                {{ t.labels.deviceName }}
+                                <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                    <span class="tip-content">
+                                        <span class="tip-header">{{ t.labels.deviceName }}</span>
+                                        <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}</span><span class="t-val">{{ t.hints.deviceName.aim }}</span></span>
+                                        <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}</span><span class="t-val">{{ t.hints.deviceName.type }}</span></span>
+                                        <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}</span><span class="t-val"><span class="tip-def">{{ t.hints.deviceName.def }}</span></span></span>
+                                    </span>
+                                </span>
+                            </label>
+                            <div class="control"><input class="input" v-model="form.deviceName" :placeholder="t.hints.deviceName.def"></div>
+                        </div>
+                    </template>
+
+                    <template v-else-if="form.provider === 'cloudflare'">
+                        <div class="field">
+                            <label class="label">
+                                {{ t.labels.cloudflareEndpoint }}
+                                <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                    <span class="tip-content">
+                                        <span class="tip-header">{{ t.labels.cloudflareEndpoint }}</span>
+                                        <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}</span><span class="t-val">{{ t.hints.cloudflareEndpoint.aim }}</span></span>
+                                        <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}</span><span class="t-val">{{ t.hints.cloudflareEndpoint.type }}</span></span>
+                                        <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}</span><span class="t-val"><span class="tip-def">{{ t.hints.cloudflareEndpoint.def }}</span></span></span>
+                                    </span>
+                                </span>
+                            </label>
+                            <div class="control">
+                                <select class="input" v-model="form.cloudflareEndpoint">
+                                    <option value="security">Security (Malware Blocking)</option>
+                                    <option value="family">Family (Adult + Malware)</option>
+                                    <option value="default">Default (1.1.1.1)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template v-else-if="form.provider === 'adguard'">
+                        <div class="field">
+                            <label class="label">{{ t.labels.adguardEndpoint }}</label>
+                            <div class="control">
+                                <select class="input" v-model="form.adguardEndpoint">
+                                    <option value="default">Default (Ads + Trackers)</option>
+                                    <option value="unfiltered">Non-filtering</option>
+                                    <option value="family">Family (Ads + Trackers + Adult + Safe Search)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template v-else-if="form.provider === 'opendns'">
+                        <div class="field">
+                            <label class="label">{{ t.labels.opendnsEndpoint }}</label>
+                            <div class="control">
+                                <select class="input" v-model="form.opendnsEndpoint">
+                                    <option value="standard">Standard</option>
+                                    <option value="family">FamilyShield (Adult content)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template v-else-if="form.provider === 'quad9'">
+                        <div class="field">
+                            <label class="label">{{ t.labels.quad9Endpoint }}</label>
+                            <div class="control">
+                                <select class="input" v-model="form.quad9Endpoint">
+                                    <option value="secure">Secure (Threat blocking)</option>
+                                    <option value="unsecured">No threat blocking</option>
+                                    <option value="secureEcs">Secure + ECS</option>
+                                    <option value="unsecuredEcs">No threat blocking + ECS</option>
+                                </select>
+                            </div>
+                        </div>
+                    </template>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.labels.maxConn }}
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.maxConn }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}</span><span class="t-val">{{ t.hints.maxConn.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}</span><span class="t-val">{{ t.hints.maxConn.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}</span><span class="t-val"><span class="tip-def">{{ t.hints.maxConn.def }}</span></span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control"><input class="input" v-model="form.maxConn" :placeholder="t.hints.maxConn.def"></div>
+                    </div>
+
+                    <div class="field">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.useUltralowServers">
+                            <span class="checkbox-text">{{ plainDnsUi.label }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ plainDnsUi.tip }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <template v-if="form.useUltralowServers">
+                            <label class="label">{{ plainDnsUi.v4Label }}
+                                <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                    <span class="tip-content">
+                                        <span class="tip-header">{{ plainDnsUi.v4Label }}</span>
+                                        <span class="tip-row"><span class="t-val">{{ plainDnsUi.v4Aim }}</span></span>
+                                        <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}</span><span class="t-val"><span class="tip-def">{{ providerDnsPreset.v4 }}</span></span></span>
+                                    </span>
+                                </span>
+                            </label>
+                            <div class="control"><input class="input" v-model="form.plainDnsServers" :placeholder="providerDnsPreset.v4"></div>
+                            <label class="label">{{ plainDnsUi.v6Label }}
+                                <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                    <span class="tip-content">
+                                        <span class="tip-header">{{ plainDnsUi.v6Label }}</span>
+                                        <span class="tip-row"><span class="t-val">{{ plainDnsUi.v6Aim }}</span></span>
+                                        <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}</span><span class="t-val"><span class="tip-def">{{ providerDnsPreset.v6 }}</span></span></span>
+                                    </span>
+                                </span>
+                            </label>
+                            <div class="control"><input class="input" v-model="form.plainDnsServersV6" :placeholder="providerDnsPreset.v6"></div>
+                        </template>
+                    </div>
+                    <div class="field">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.allowRemote">
+                            <span class="checkbox-text">{{ t.ui.allowRemote }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.ui.allowRemoteTip }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+                    <div class="field">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.verifyCert">
+                            <span class="checkbox-text">{{ t.ui.verifyCert }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.ui.verifyCertTip }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+                    <div class="field">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.includeDhcpDns">
+                            <span class="checkbox-text">{{ t.ui.includeDhcpDns }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.ui.includeDhcpDnsTip }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <template v-if="form.includeDhcpDns">
+                            <label class="label">{{ t.labels.routerIp }}
+                                <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                    <span class="tip-content">
+                                        <span class="tip-header">{{ t.labels.routerIp }}</span>
+                                        <span class="tip-row"><span class="t-val">{{ t.hints.routerIp.aim }}</span></span>
+                                        <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}</span><span class="t-val"><span class="tip-def">{{ t.hints.routerIp.def }}</span></span></span>
+                                    </span>
+                                </span>
+                            </label>
+                            <div class="control"><input class="input" v-model="form.routerIp" :placeholder="t.hints.routerIp.def"></div>
+                        </template>
+                    </div>
+                    <div class="field">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.includeDnsRedirect">
+                            <span class="checkbox-text">{{ t.ui.includeDnsRedirect }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.ui.includeDnsRedirectTip }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+                    <div class="field mb-0" v-if="form.includeDhcpDns || form.includeDnsRedirect">
+                        <label class="label">{{ t.labels.lanNet }}
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.lanNet }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.hints.lanNet.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}</span><span class="t-val"><span class="tip-def">{{ t.hints.lanNet.def }}</span></span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control"><input class="input" v-model="form.lanNet" :placeholder="t.hints.lanNet.def"></div>
+                    </div>
+                </section>
+
+                <section class="panel panel-script nat-panel-script">
+                    <div class="code-container">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:.5rem">
+                            <div style="font-weight:700; color:var(--text)"><i class="fas fa-terminal mr-2"></i> {{ t.ui.scriptTitle }}</div>
+                            <button type="button" class="btn btn-dark btn-sm copy-btn" @click="copyText('main-script')"><i class="fas fa-copy mr-1"></i> {{ t.ui.copy }}</button>
+                        </div>
+                        <pre id="main-script" class="script-pre">{{ generatedScript }}</pre>
+                    </div>
+                    <div class="callout mb-0">
+                        <strong><i class="fas fa-info-circle mr-1"></i></strong> {{ plainDnsUi.note }}
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        const i18n = {
+            vi: {
+                labels: {
+                    provider: 'Nhà cung cấp DoH',
+                    profile: 'Profile ID (NextDNS)',
+                    deviceName: 'Tên thiết bị trong NextDNS (tuỳ chọn)',
+                    cloudflareEndpoint: 'Cloudflare DoH endpoint',
+                    adguardEndpoint: 'Chế độ AdGuard DNS',
+                    opendnsEndpoint: 'Chế độ OpenDNS',
+                    quad9Endpoint: 'Chế độ Quad9',
+                    maxConn: 'Số kết nối DoH song song',
+                    routerIp: 'IP LAN của router',
+                    lanNet: 'Dải LAN',
+                    plainDnsServers: 'IPv4 ultralow',
+                    plainDnsServersV6: 'IPv6 ultralow'
+                },
+                hints: {
+                    provider: { aim: 'Chọn dịch vụ DoH muốn dùng trên RouterOS (sẽ đổi use-doh-server=).', type: 'Lựa chọn', def: 'NextDNS' },
+                    profile: { aim: 'NextDNS → Setup → Router/DNS: ID là đoạn sau dns.nextdns.io/ trong URL.', type: 'Chuỗi', def: 'abc123' },
+                    deviceName: { aim: 'Để NextDNS phân nhóm log (Device name). Không dùng thì để trống.', type: 'Chữ hoặc trống', def: 'router-nha' },
+                    cloudflareEndpoint: { aim: 'Chọn 1 trong 3 DoH URL của Cloudflare (Security/Family/Default).', type: 'Lựa chọn', def: 'Security' },
+                    maxConn: { aim: 'RouterOS giới hạn bao nhiêu phiên DoH chạy song song.', type: 'Số', def: '5' },
+                    routerIp: { aim: 'Địa chỉ LAN của router — DHCP sẽ gán đây làm DNS cho máy trong LAN.', type: 'IPv4', def: '192.168.88.1' },
+                    lanNet: { aim: 'Phải khớp address trong /ip dhcp-server network print (VD 192.168.88.0/24). Dùng cho block DHCP và NAT redirect trong script.', type: 'CIDR', def: '192.168.88.0/24' },
+                    plainDnsServers: { aim: 'Danh sách IPv4 ultralow của NextDNS (số có thể khác vùng — lấy trong NextDNS → Setup → Router). Nhiều IP cách nhau dấu phẩy.', type: 'IPv4, phẩy', def: '45.90.28.0,45.90.30.0' },
+                    plainDnsServersV6: { aim: 'IPv6 ultralow tương tự; không dùng IPv6 thì để trống.', type: 'IPv6, phẩy', def: '2a07:a8c0::,2a07:a8c1::' }
+                },
+                ui: {
+                    tipDetails: 'Chi tiết',
+                    tipAim: 'Ý nghĩa',
+                    tipType: 'Kiểu',
+                    tipDef: 'Ví dụ',
+                    serverConfig: 'Thông số',
+                    scriptTitle: 'Script RouterOS',
+                    copy: 'Copy script',
+                    scriptComment: 'RouterOS 7+',
+                    allowRemote: 'Cho LAN hỏi DNS qua IP router',
+                    allowRemoteTip: 'Bật khi máy trong LAN đặt DNS là gateway và bạn muốn resolver chạy trên router (thường dùng kèm DoH).',
+                    verifyCert: 'Kiểm tra chứng chỉ HTTPS của máy chủ DoH',
+                    verifyCertTip: 'Nên bật để giảm rủi ro máy chủ DoH giả mạo.',
+                    includeDhcpDns: 'Thêm lệnh DHCP: DNS máy con = router',
+                    includeDhcpDnsTip: 'Script chèn /ip dhcp-server network … dns-server=. Chỉ bật nếu DHCP MikroTik phải đẩy DNS xuống client. Nhiều mạng DHCP thì sửa [find …] cho khớp.',
+                    includeDnsRedirect: 'Thêm NAT: ép DNS (cổng 53) trong LAN về router',
+                    includeDnsRedirectTip: 'Máy đặt DNS 8.8.8.8 hay 1.1.1.1 vẫn bị chuyển về resolver trên router (dstnat redirect). Nên bật “Cho LAN hỏi DNS qua router”. Tránh trùng rule NAT cũ.',
+                    useUltralowServers: 'Điền thêm DNS thuần (servers=) kèm DoH',
+                    useUltralowServersTip: 'DoH vẫn qua use-doh-server=; đồng thời điền servers= bằng IPv4+IPv6 ultralow (một chuỗi, phân cách phẩy). Tắt nếu muốn servers trống.',
+                    dhcpDnsComment: 'Tuỳ chọn — DHCP trỏ DNS về router',
+                    dnsRedirectComment: 'Tuỳ chọn — NAT redirect DNS (UDP/TCP 53) về router',
+                    note: 'Cần RouterOS 7+. Sau khi dán chạy /ip dns print. Nếu dùng NextDNS ultralow thì IP có thể khác vùng — đối chiếu trong NextDNS.',
+                    copied: 'Đã sao chép!',
+                    testedOn: 'Đã test ổn định trên RouterOS v7.22',
+                    themeDark: 'Giao diện tối',
+                    themeLight: 'Giao diện sáng'
+                }
+            },
+            en: {
+                labels: {
+                    provider: 'DoH provider',
+                    profile: 'Profile ID (NextDNS)',
+                    deviceName: 'NextDNS device label (optional)',
+                    cloudflareEndpoint: 'Cloudflare DoH endpoint',
+                    adguardEndpoint: 'AdGuard DNS mode',
+                    opendnsEndpoint: 'OpenDNS mode',
+                    quad9Endpoint: 'Quad9 mode',
+                    maxConn: 'Parallel DoH sessions',
+                    routerIp: 'Router LAN IP',
+                    lanNet: 'LAN subnet',
+                    plainDnsServers: 'IPv4 ultralow',
+                    plainDnsServersV6: 'IPv6 ultralow'
+                },
+                hints: {
+                    provider: { aim: 'Choose which DoH service to use on RouterOS (sets use-doh-server=).', type: 'Select', def: 'NextDNS' },
+                    profile: { aim: 'NextDNS → Setup → router/DNS — ID is the segment after dns.nextdns.io/ in the dashboard URL.', type: 'String', def: 'abc123' },
+                    deviceName: { aim: 'Shown in NextDNS logs/analytics as the device name. Leave blank if unused.', type: 'Text or empty', def: 'home-router' },
+                    cloudflareEndpoint: { aim: 'Pick one of Cloudflare’s 3 DoH URLs (Security/Family/Default).', type: 'Select', def: 'Security' },
+                    maxConn: { aim: 'RouterOS cap on concurrent DoH connections.', type: 'Number', def: '5' },
+                    routerIp: { aim: 'Router LAN address DHCP should advertise as the DNS server.', type: 'IPv4', def: '192.168.88.1' },
+                    lanNet: { aim: 'Must match /ip dhcp-server network address= (e.g. 192.168.88.0/24). Used by the DHCP + NAT snippets.', type: 'CIDR', def: '192.168.88.0/24' },
+                    plainDnsServers: { aim: 'Ultralow IPv4 list for servers=. IPs differ by region — copy from NextDNS → Setup → Router.', type: 'Comma-separated IPv4', def: '45.90.28.0,45.90.30.0' },
+                    plainDnsServersV6: { aim: 'Ultralow IPv6 list; leave empty if IPv6 is unused.', type: 'Comma-separated IPv6', def: '2a07:a8c0::,2a07:a8c1::' }
+                },
+                ui: {
+                    tipDetails: 'Details',
+                    tipAim: 'Meaning',
+                    tipType: 'Type',
+                    tipDef: 'Example',
+                    serverConfig: 'Parameters',
+                    scriptTitle: 'RouterOS script',
+                    copy: 'Copy script',
+                    scriptComment: 'RouterOS v7+',
+                    allowRemote: 'LAN can query DNS via router IP',
+                    allowRemoteTip: 'Turn on when LAN devices point DNS at the gateway and you resolve DNS on the router (common with DoH).',
+                    verifyCert: 'Verify DoH server TLS certificate',
+                    verifyCertTip: 'Recommended to reduce bogus DoH endpoint risk.',
+                    includeDhcpDns: 'Add DHCP: push router as DNS',
+                    includeDhcpDnsTip: 'Adds /ip dhcp-server network … dns-server=. Enable only if MikroTik DHCP should assign DNS. Adjust [find …] when multiple DHCP networks exist.',
+                    includeDnsRedirect: 'Add NAT: LAN DNS port 53 → router',
+                    includeDnsRedirectTip: 'Even if clients use 8.8.8.8 / 1.1.1.1, UDP/TCP 53 from LAN hits your resolver via dstnat redirect. Pair with “LAN can query DNS”. Avoid duplicate NAT rules.',
+                    useUltralowServers: 'Also fill servers= ultralow IPs',
+                    useUltralowServersTip: 'DoH stays on use-doh-server= while servers= lists ultralow IPv4+IPv6 in one comma-separated string. Disable to leave servers empty.',
+                    dhcpDnsComment: 'Optional — DHCP DNS via router',
+                    dnsRedirectComment: 'Optional — NAT DNS redirect (UDP/TCP 53) to router',
+                    note: 'Requires RouterOS v7+. After paste run /ip dns print. If using NextDNS ultralow, IPs may vary — verify inside NextDNS.',
+                    copied: 'Copied!',
+                    testedOn: 'Tested stable on RouterOS v7.22',
+                    themeDark: 'Dark theme',
+                    themeLight: 'Light theme'
+                }
+            }
+        };
+
+        const DNS_PRESETS = {
+            nextdns: {
+                v4: '45.90.28.0,45.90.30.0',
+                v6: '2a07:a8c0::,2a07:a8c1::'
+            },
+            google: {
+                v4: '8.8.8.8,8.8.4.4',
+                v6: '2001:4860:4860::8888,2001:4860:4860::8844'
+            },
+            adguard: {
+                default: {
+                    v4: '94.140.14.14,94.140.15.15',
+                    v6: '2a10:50c0::ad1:ff,2a10:50c0::ad2:ff'
+                },
+                unfiltered: {
+                    v4: '94.140.14.140,94.140.14.141',
+                    v6: '2a10:50c0::1:ff,2a10:50c0::2:ff'
+                },
+                family: {
+                    v4: '94.140.14.15,94.140.15.16',
+                    v6: '2a10:50c0::bad1:ff,2a10:50c0::bad2:ff'
+                }
+            },
+            opendns: {
+                standard: {
+                    v4: '208.67.222.222,208.67.220.220',
+                    v6: '2620:119:35::35,2620:119:53::53'
+                },
+                family: {
+                    v4: '208.67.222.123,208.67.220.123',
+                    v6: '2620:119:35::123,2620:119:53::123'
+                }
+            },
+            quad9: {
+                secure: {
+                    v4: '9.9.9.9,149.112.112.112',
+                    v6: '2620:fe::fe,2620:fe::9'
+                },
+                unsecured: {
+                    v4: '9.9.9.10,149.112.112.10',
+                    v6: '2620:fe::10,2620:fe::fe:10'
+                },
+                secureEcs: {
+                    v4: '9.9.9.11,149.112.112.11',
+                    v6: '2620:fe::11,2620:fe::fe:11'
+                },
+                unsecuredEcs: {
+                    v4: '9.9.9.12,149.112.112.12',
+                    v6: '2620:fe::12,2620:fe::fe:12'
+                }
+            },
+            cloudflare: {
+                security: {
+                    v4: '1.1.1.2,1.0.0.2',
+                    v6: '2606:4700:4700::1112,2606:4700:4700::1002'
+                },
+                family: {
+                    v4: '1.1.1.3,1.0.0.3',
+                    v6: '2606:4700:4700::1113,2606:4700:4700::1003'
+                },
+                default: {
+                    v4: '1.1.1.1,1.0.0.1',
+                    v6: '2606:4700:4700::1111,2606:4700:4700::1001'
+                }
+            }
+        };
+
+        createApp({
+            data() {
+                return {
+                    lang: typeof MikrotikLang !== 'undefined' ? MikrotikLang.get() : 'vi',
+                    theme: typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light',
+                    showToast: false,
+                    form: {
+                        provider: 'nextdns',
+                        profile: '',
+                        deviceName: '',
+                        cloudflareEndpoint: 'security',
+                        adguardEndpoint: 'default',
+                        opendnsEndpoint: 'standard',
+                        quad9Endpoint: 'secure',
+                        maxConn: '5',
+                        useUltralowServers: true,
+                        plainDnsServers: '45.90.28.0,45.90.30.0',
+                        plainDnsServersV6: '2a07:a8c0::,2a07:a8c1::',
+                        allowRemote: true,
+                        verifyCert: true,
+                        includeDhcpDns: false,
+                        includeDnsRedirect: false,
+                        routerIp: '192.168.88.1',
+                        lanNet: '192.168.88.0/24'
+                    }
+                };
+            },
+            computed: {
+                t() { return i18n[this.lang]; },
+                dohUrl() {
+                    const provider = (this.form.provider || 'nextdns').trim();
+                    if (provider === 'cloudflare') {
+                        const map = {
+                            security: 'https://security.cloudflare-dns.com/dns-query',
+                            family: 'https://family.cloudflare-dns.com/dns-query',
+                            default: 'https://cloudflare-dns.com/dns-query'
+                        };
+                        return map[this.form.cloudflareEndpoint] || map.security;
+                    }
+                    if (provider === 'google') return 'https://dns.google/dns-query';
+                    if (provider === 'adguard') {
+                        const map = {
+                            default: 'https://dns.adguard-dns.com/dns-query',
+                            unfiltered: 'https://unfiltered.adguard-dns.com/dns-query',
+                            family: 'https://family.adguard-dns.com/dns-query'
+                        };
+                        return map[this.form.adguardEndpoint] || map.default;
+                    }
+                    if (provider === 'opendns') {
+                        const map = {
+                            standard: 'https://doh.opendns.com/dns-query',
+                            family: 'https://doh.familyshield.opendns.com/dns-query'
+                        };
+                        return map[this.form.opendnsEndpoint] || map.standard;
+                    }
+                    if (provider === 'quad9') {
+                        const map = {
+                            secure: 'https://dns.quad9.net/dns-query',
+                            unsecured: 'https://dns10.quad9.net/dns-query',
+                            secureEcs: 'https://dns11.quad9.net/dns-query',
+                            unsecuredEcs: 'https://dns12.quad9.net/dns-query'
+                        };
+                        return map[this.form.quad9Endpoint] || map.secure;
+                    }
+
+                    const p = (this.form.profile || '').trim();
+                    const d = (this.form.deviceName || '').trim();
+                    if (!p) return 'https://dns.nextdns.io/YOUR_PROFILE';
+                    const base = 'https://dns.nextdns.io/' + p;
+                    return d ? base + '/' + encodeURIComponent(d) : base;
+                },
+                providerDnsPreset() {
+                    const provider = (this.form.provider || 'nextdns').trim();
+                    if (provider === 'cloudflare') {
+                        return DNS_PRESETS.cloudflare[this.form.cloudflareEndpoint] || DNS_PRESETS.cloudflare.security;
+                    }
+                    if (provider === 'adguard') {
+                        return DNS_PRESETS.adguard[this.form.adguardEndpoint] || DNS_PRESETS.adguard.default;
+                    }
+                    if (provider === 'opendns') {
+                        return DNS_PRESETS.opendns[this.form.opendnsEndpoint] || DNS_PRESETS.opendns.standard;
+                    }
+                    if (provider === 'quad9') {
+                        return DNS_PRESETS.quad9[this.form.quad9Endpoint] || DNS_PRESETS.quad9.secure;
+                    }
+                    return DNS_PRESETS[provider] || DNS_PRESETS.nextdns;
+                },
+                plainDnsUi() {
+                    const provider = (this.form.provider || 'nextdns').trim();
+                    if (provider === 'nextdns') {
+                        return this.lang === 'vi' ? {
+                            label: 'Điền thêm DNS thuần ultralow (servers=) kèm DoH',
+                            tip: 'DoH vẫn qua use-doh-server=; đồng thời điền servers= bằng IPv4+IPv6 ultralow của NextDNS. IP có thể khác vùng, nên đối chiếu trong NextDNS → Setup → Router.',
+                            v4Label: 'IPv4 ultralow',
+                            v6Label: 'IPv6 ultralow',
+                            v4Aim: 'Danh sách IPv4 ultralow của NextDNS. Nhiều IP cách nhau dấu phẩy.',
+                            v6Aim: 'IPv6 ultralow tương tự; không dùng IPv6 thì để trống.',
+                            note: 'Cần RouterOS 7+. Sau khi dán chạy /ip dns print. Nếu dùng NextDNS ultralow thì IP có thể khác vùng — đối chiếu trong NextDNS.'
+                        } : {
+                            label: 'Also fill NextDNS ultralow IPs in servers=',
+                            tip: 'DoH stays on use-doh-server= while servers= lists NextDNS ultralow IPv4+IPv6. IPs may vary by region; verify in NextDNS → Setup → Router.',
+                            v4Label: 'IPv4 ultralow',
+                            v6Label: 'IPv6 ultralow',
+                            v4Aim: 'NextDNS ultralow IPv4 list. Use commas between multiple IPs.',
+                            v6Aim: 'NextDNS ultralow IPv6 list; leave empty if IPv6 is unused.',
+                            note: 'Requires RouterOS v7+. After paste run /ip dns print. If using NextDNS ultralow, IPs may vary — verify inside NextDNS.'
+                        };
+                    }
+                    const providerNameMap = {
+                        google: 'Google',
+                        cloudflare: 'Cloudflare',
+                        adguard: 'AdGuard',
+                        opendns: 'OpenDNS',
+                        quad9: 'Quad9'
+                    };
+                    const providerName = providerNameMap[provider] || 'Provider';
+                    return this.lang === 'vi' ? {
+                        label: 'Điền thêm DNS thuần (servers=) kèm DoH',
+                        tip: providerName + ' không có khái niệm ultralow; servers= sẽ dùng DNS thuần của ' + providerName + ' làm bootstrap/fallback cho hostname DoH.',
+                        v4Label: 'IPv4 DNS thuần',
+                        v6Label: 'IPv6 DNS thuần',
+                        v4Aim: 'Danh sách IPv4 DNS thuần của ' + providerName + '. Nhiều IP cách nhau dấu phẩy.',
+                        v6Aim: 'Danh sách IPv6 DNS thuần của ' + providerName + '; không dùng IPv6 thì để trống.',
+                        note: 'Cần RouterOS 7+. Sau khi dán chạy /ip dns print. Với provider không phải NextDNS, servers= là DNS thuần/bootstrap, không phải ultralow.'
+                    } : {
+                        label: 'Also fill plain DNS servers=',
+                        tip: providerName + ' has no ultralow concept; servers= uses plain ' + providerName + ' DNS as bootstrap/fallback for the DoH hostname.',
+                        v4Label: 'Plain IPv4 DNS',
+                        v6Label: 'Plain IPv6 DNS',
+                        v4Aim: 'Plain ' + providerName + ' IPv4 DNS list. Use commas between multiple IPs.',
+                        v6Aim: 'Plain ' + providerName + ' IPv6 DNS list; leave empty if IPv6 is unused.',
+                        note: 'Requires RouterOS v7+. After paste run /ip dns print. With non-NextDNS providers, servers= is plain bootstrap DNS, not ultralow.'
+                    };
+                },
+                dnsServersParam() {
+                    if (!this.form.useUltralowServers) return '';
+                    function normList(str) {
+                        return (str || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+                    }
+                    const parts = normList(this.form.plainDnsServers).concat(normList(this.form.plainDnsServersV6));
+                    return parts.join(',');
+                },
+                generatedScript() {
+                    const t = this.t.ui;
+                    const ar = this.form.allowRemote ? 'yes' : 'no';
+                    const vc = this.form.verifyCert ? 'yes' : 'no';
+                    const servers = this.dnsServersParam;
+                    const serversArg = servers ? ('servers=' + servers) : 'servers=""';
+                    const lines = ['# DoH DNS — ' + t.scriptComment];
+                    lines.push('/ip dns set allow-remote-requests=' + ar + ' ' + serversArg + ' use-doh-server="' + this.dohUrl + '" doh-max-server-connections=' + this.form.maxConn + ' verify-doh-cert=' + vc);
+                    if (this.form.includeDhcpDns) {
+                        const ip = (this.form.routerIp || '').trim() || '192.168.88.1';
+                        const net = (this.form.lanNet || '').trim() || '192.168.88.0/24';
+                        lines.push('');
+                        lines.push('# ' + t.dhcpDnsComment);
+                        lines.push('/ip dhcp-server network set [find address=' + net + '] dns-server=' + ip);
+                    }
+                    if (this.form.includeDnsRedirect) {
+                        const net = (this.form.lanNet || '').trim() || '192.168.88.0/24';
+                        lines.push('');
+                        lines.push('# ' + t.dnsRedirectComment);
+                        lines.push('/ip firewall nat add chain=dstnat action=redirect protocol=udp dst-port=53 src-address=' + net + ' dst-address-type=!local to-ports=53 comment="DNS-redirect-UDP"');
+                        lines.push('/ip firewall nat add chain=dstnat action=redirect protocol=tcp dst-port=53 src-address=' + net + ' dst-address-type=!local to-ports=53 comment="DNS-redirect-TCP"');
+                    }
+                    return lines.join('\n');
+                }
+            },
+            watch: {
+                'form.provider'() {
+                    this.applyProviderDnsPreset();
+                },
+                'form.cloudflareEndpoint'() {
+                    if (this.form.provider === 'cloudflare') this.applyProviderDnsPreset();
+                },
+                'form.adguardEndpoint'() {
+                    if (this.form.provider === 'adguard') this.applyProviderDnsPreset();
+                },
+                'form.opendnsEndpoint'() {
+                    if (this.form.provider === 'opendns') this.applyProviderDnsPreset();
+                },
+                'form.quad9Endpoint'() {
+                    if (this.form.provider === 'quad9') this.applyProviderDnsPreset();
+                }
+            },
+            methods: {
+                applyProviderDnsPreset() {
+                    this.form.plainDnsServers = this.providerDnsPreset.v4;
+                    this.form.plainDnsServersV6 = this.providerDnsPreset.v6;
+                },
+                toggleLang() {
+                    if (typeof MikrotikLang !== 'undefined') this.lang = MikrotikLang.toggle();
+                    else this.lang = this.lang === 'vi' ? 'en' : 'vi';
+                },
+                toggleTheme() {
+                    if (typeof MikrotikTheme !== 'undefined') MikrotikTheme.toggle();
+                    this.theme = typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light';
+                },
+                toast() {
+                    this.showToast = true;
+                    setTimeout(() => { this.showToast = false; }, 2500);
+                },
+                copyText(id) {
+                    const el = document.getElementById(id);
+                    const txt = el ? el.innerText : '';
+                    navigator.clipboard.writeText(txt);
+                    this.toast();
+                }
+            },
+            mounted() {
+                const onTheme = (e) => { this.theme = e.detail.theme; };
+                window.addEventListener('mikrotik-theme-effective-change', onTheme);
+                this._offTheme = () => window.removeEventListener('mikrotik-theme-effective-change', onTheme);
+
+                const onLang = (e) => { this.lang = (e && e.detail && e.detail.lang) ? e.detail.lang : this.lang; };
+                window.addEventListener('mikrotik-lang-change', onLang);
+                this._offLang = () => window.removeEventListener('mikrotik-lang-change', onLang);
+            },
+            beforeUnmount() {
+                if (this._offTheme) this._offTheme();
+                if (this._offLang) this._offLang();
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

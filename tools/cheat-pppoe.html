@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <script>(function(){try{var k=localStorage.getItem('mikrotik-theme');var d=false;if(k==='dark')d=true;else if(k!=='light'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)d=true;if(d)document.documentElement.classList.add('theme-dark');}catch(e){}})();</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Cheat PPPoE theo nhà mạng — MikroTik Tools | Zakshin</title>
+    <meta name="description" content="Cheat-sheet PPPoE theo nhà mạng (tham khảo). Tính năng dành cho hội viên cao cấp.">
+    <meta name="keywords" content="MikroTik, PPPoE, Viettel, VNPT, FPT, cheat sheet, Zakshin">
+    <meta name="author" content="Nghĩa Zakshin">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="https://mikrotik.hainghia.net/cheat-pppoe">
+    <link rel="alternate" hreflang="vi" href="https://mikrotik.hainghia.net/cheat-pppoe">
+    <link rel="alternate" hreflang="en" href="https://mikrotik.hainghia.net/cheat-pppoe">
+    <link rel="alternate" hreflang="x-default" href="https://mikrotik.hainghia.net/cheat-pppoe">
+    <link rel="icon" type="image/png" href="../Logo.png">
+    <link rel="apple-touch-icon" href="../Logo.png">
+    <link rel="manifest" href="../site.webmanifest">
+    <meta name="theme-color" content="#f5f7fa">
+    <meta name="format-detection" content="telephone=no">
+
+    <meta property="og:site_name" content="MikroTik Tools — Zakshin">
+    <meta property="og:title" content="Cheat PPPoE theo nhà mạng — MikroTik Tools | Zakshin">
+    <meta property="og:description" content="Cheat-sheet PPPoE theo nhà mạng để tham khảo: Viettel, VNPT, FPT. Tính năng Premium trong MikroTik Tools.">
+    <meta property="og:url" content="https://mikrotik.hainghia.net/cheat-pppoe">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:image" content="https://mikrotik.hainghia.net/Logo.png">
+    <meta property="og:image:secure_url" content="https://mikrotik.hainghia.net/Logo.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="427">
+    <meta property="og:image:height" content="427">
+    <meta property="og:image:alt" content="MikroTik Tools — PPPoE Cheat">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Cheat PPPoE theo nhà mạng | Zakshin">
+    <meta name="twitter:description" content="Cheat-sheet PPPoE theo nhà mạng để tham khảo: Viettel, VNPT, FPT.">
+    <meta name="twitter:image" content="https://mikrotik.hainghia.net/Logo.png">
+    <meta name="twitter:image:alt" content="MikroTik Tools — PPPoE Cheat">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../assets/site.css">
+    <script src="../assets/theme-ui.js"></script>
+    <script src="../assets/lang-ui.js"></script>
+    <script type="application/json" id="seo-i18n-data">{"en":{"title":"PPPoE cheat sheet by ISP — MikroTik Tools (Premium) | Zakshin","description":"PPPoE reference cheat sheet by Vietnamese ISP (Viettel, VNPT, FPT, etc.). Premium MikroTik Tools feature — for members.","keywords":"MikroTik, PPPoE, Viettel, VNPT, FPT, cheat sheet, Zakshin","ogTitle":"PPPoE cheat sheet — MikroTik Tools | Zakshin","ogDesc":"ISP PPPoE notes for MikroTik — Premium reference.","twitterTitle":"PPPoE cheat sheet | Zakshin","twitterDesc":"ISP PPPoE reference for RouterOS (Premium).","ogImageAlt":"MikroTik PPPoE cheat sheet"}}</script>
+    <script src="../assets/seo-i18n.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="app-shell">
+    <!-- #Muốn xem code Premium của ta ư? Nếu muốn, ta sẽ cho. Hãy vào internet mà tìm – Ta để tất cả ở đó! -->
+    <div class="noise" aria-hidden="true"></div>
+    <div id="app" class="app-shell">
+        <div v-if="showToast" class="toast-msg">
+            <i class="fas fa-check-circle text-success mr-2"></i> {{ t.ui.copied }}
+        </div>
+
+        <nav class="tool-nav">
+            <div class="tool-nav-inner">
+                <div class="tool-nav-row">
+                    <div class="tool-nav-brand">
+                        <a href="/" class="btn btn-ghost btn-sm btn-icon" title="Trang chủ" aria-label="Trang chủ"><i class="fas fa-home"></i></a>
+                        <span class="tool-nav-logo" aria-hidden="true"><img src="../Logo.png" alt="" width="34" height="34" decoding="async"></span>
+                        <h1 class="tool-nav-title">
+                            <i class="fas fa-id-card accent-icon"></i> PPPoE Cheat
+                            <span class="badge-beta" style="margin-left:.5rem; background:rgba(255,193,7,.15); color:#ffb020; border:1px solid rgba(255,193,7,.35)">
+                                Premium
+                            </span>
+                        </h1>
+                    </div>
+                    <div class="tool-nav-actions">
+                        <div class="wg-actions-stack">
+                            <button type="button" class="btn btn-ghost btn-sm btn-icon" @click="toggleTheme" :aria-label="theme === 'dark' ? t.ui.themeLight : t.ui.themeDark" :title="theme === 'dark' ? t.ui.themeLight : t.ui.themeDark">
+                                <i :class="theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="btn btn-ghost btn-sm" @click="toggleLang">
+                                <i class="fas fa-globe mr-1"></i> {{ lang === 'vi' ? 'English' : 'Tiếng Việt' }}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="tool-nav-meta">
+                        <div><strong>Nghĩa Zakshin</strong></div>
+                        <div class="tool-nav-meta-sub">MikroTik Tools</div>
+                        <div class="tool-nav-meta-sub"><i class="fas fa-crown mr-1"></i> {{ t.ui.premiumOnly }}</div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="tool-main">
+            <div class="layout-split">
+                <section class="panel">
+                    <h2 class="section-title"><i class="fas fa-sliders-h mr-2"></i> {{ t.ui.config }}</h2>
+
+                    <div class="callout" v-if="t.ui.disclaimer">
+                        <strong><i class="fas fa-circle-info mr-1"></i></strong>
+                        <span>{{ t.ui.disclaimer }}</span>
+                    </div>
+
+                    <div class="callout" v-if="!premium">
+                        <strong><i class="fas fa-lock mr-1"></i></strong>
+                        <span>{{ t.ui.lockedMsg }}</span>
+                        <div class="help" style="margin-top:.5rem; color:var(--muted)" v-if="t.ui.lockedHint">{{ t.ui.lockedHint }}</div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.ui.pickIsp }}
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.ui.pickIspTip }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <div class="select">
+                                <select v-model="selectedId" :disabled="!premium || !isps.length" :aria-disabled="!premium || !isps.length" @mousedown="premiumGate" @keydown="premiumGate">
+                                    <option value="">{{ premium ? t.ui.pickIspPlaceholder : t.ui.pickIspLocked }}</option>
+                                    <option v-for="isp in isps" :key="isp.id" :value="isp.id">{{ isp.name[lang] || isp.name.vi }}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="callout" v-if="!premium">
+                        <strong><i class="fas fa-hat-wizard mr-1"></i></strong>
+                        <span>{{ t.ui.trollLine1 }}</span>
+                        <div class="help" style="margin-top:.5rem; color:var(--muted)">{{ t.ui.trollLine2 }}</div>
+                    </div>
+
+                    <div v-if="premium && selected" class="field">
+                        <div class="callout mb-0">
+                            <div style="font-weight:800; margin-bottom:.25rem">{{ selected.name[lang] || selected.name.vi }}</div>
+                            <div class="help mb-0" style="color:var(--muted)">{{ selected.usernameHint?.[lang] || selected.usernameHint?.vi }}</div>
+                            <div class="help mb-0" style="color:var(--muted)">{{ selected.passwordHint?.[lang] || selected.passwordHint?.vi }}</div>
+                        </div>
+                    </div>
+
+                    <div v-if="premium && selected" class="field">
+                        <label class="label">{{ t.ui.example }}</label>
+                        <div class="control">
+                            <div style="display:grid; grid-template-columns: 1fr; gap:.6rem">
+                                <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap">
+                                    <span style="min-width:110px; color:var(--muted); font-weight:700">{{ t.ui.user }}</span>
+                                    <code style="flex:1; min-width:240px">{{ selected.example?.user || '' }}</code>
+                                    <button type="button" class="btn btn-dark btn-sm copy-btn" @click="copyRaw(selected.example?.user || '')" :disabled="!selected.example?.user">
+                                        <i class="fas fa-copy mr-1"></i> {{ t.ui.copy }}
+                                    </button>
+                                </div>
+                                <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap">
+                                    <span style="min-width:110px; color:var(--muted); font-weight:700">{{ t.ui.pass }}</span>
+                                    <code style="flex:1; min-width:240px">{{ selected.example?.pass || '' }}</code>
+                                    <button type="button" class="btn btn-dark btn-sm copy-btn" @click="copyRaw(selected.example?.pass || '')" :disabled="!selected.example?.pass">
+                                        <i class="fas fa-copy mr-1"></i> {{ t.ui.copy }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel panel-script">
+                    <h2 class="section-title"><i class="fas fa-list mr-2"></i> {{ t.ui.previewTitle }}</h2>
+                    <div class="code-container">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:.5rem">
+                            <div style="font-weight:700; color:var(--text)"><i class="fas fa-file-lines mr-2"></i> {{ t.ui.dataFile }}</div>
+                    <button type="button" class="btn btn-dark btn-sm copy-btn" @click="copyText('data-preview')" :disabled="!premium" :aria-disabled="!premium">
+                                <i class="fas fa-copy mr-1"></i> {{ t.ui.copy }}
+                            </button>
+                        </div>
+                        <pre id="data-preview" class="script-pre">{{ previewText }}</pre>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        const CHEAT_DATA = {
+            version: 1,
+            updatedAt: '2026-05-07',
+            notes: {
+                vi: 'Dữ liệu cheat PPPoE theo nhà mạng (để tham khảo). Có thể thay đổi theo khu vực/gói cước. Không đảm bảo đúng 100%.',
+                en: 'PPPoE cheat-sheet by ISP (reference only). Can vary by region/plan. No guarantee.'
+            },
+            isps: [
+                {
+                    id: 'viettel',
+                    name: { vi: 'Viettel', en: 'Viettel' },
+                    usernameHint: { vi: 'Thường do ISP cấp, có thể dạng: <sdt>@viettel hoặc mã khách hàng', en: 'Provided by ISP; may look like: <phone>@viettel or a customer code' },
+                    passwordHint: { vi: 'Mật khẩu do ISP cấp (không cố định)', en: 'Provided by ISP (not fixed)' },
+                    example: { user: '0987654321@viettel', pass: 'password-from-isp' }
+                },
+                {
+                    id: 'fpt',
+                    name: { vi: 'FPT', en: 'FPT' },
+                    usernameHint: { vi: 'Thường dạng: <username>@fpt hoặc mã hợp đồng', en: 'Often: <username>@fpt or a contract code' },
+                    passwordHint: { vi: 'Mật khẩu do ISP cấp (không cố định)', en: 'Provided by ISP (not fixed)' },
+                    example: { user: 'user@fpt', pass: 'password-from-isp' }
+                },
+                {
+                    id: 'vnpt',
+                    name: { vi: 'VNPT', en: 'VNPT' },
+                    usernameHint: { vi: 'Thường do ISP cấp, có thể dạng: <sdt>@vnpt hoặc mã khách hàng', en: 'Provided by ISP; may look like: <phone>@vnpt or a customer code' },
+                    passwordHint: { vi: 'Mật khẩu do ISP cấp (không cố định)', en: 'Provided by ISP (not fixed)' },
+                    example: { user: '0912345678@vnpt', pass: 'password-from-isp' }
+                }
+            ]
+        };
+
+        const i18n = {
+            vi: {
+                ui: {
+                    copied: 'Đã sao chép!',
+                    copy: 'Copy',
+                    config: 'Cheat PPPoE',
+                    premiumOnly: 'Dành cho hội viên cao cấp',
+                    disclaimer: '',
+                    lockedMsg: 'Lưu ý cần mở Premium.',
+                    lockedHint: '',
+                    trollLine1: 'Cheat PPPoE hiện đang bị khoá cần mở Premium.',
+                    trollLine2: 'Muốn tài khoản PPPoE chuẩn: xem hợp đồng/ONT hoặc liên hệ nhà mạng để xin tài khoản.',
+                    pickIsp: 'Chọn nhà mạng',
+                    pickIspTip: 'Chọn ISP để xem gợi ý định dạng username/password và ví dụ. (Chỉ mở khi Premium)',
+                    pickIspPlaceholder: 'Chọn nhà mạng…',
+                    pickIspLocked: 'Premium required',
+                    example: 'Ví dụ (tham khảo)',
+                    user: 'PPPoE user',
+                    pass: 'PPPoE password',
+                    previewTitle: 'Preview dữ liệu',
+                    dataFile: 'cheat_pppoe.json',
+                    tipDetails: 'Chi tiết',
+                    themeDark: 'Giao diện tối',
+                    themeLight: 'Giao diện sáng'
+                }
+            },
+            en: {
+                ui: {
+                    copied: 'Copied!',
+                    copy: 'Copy',
+                    config: 'PPPoE cheat-sheet',
+                    premiumOnly: 'Premium-only',
+                    disclaimer: '',
+                    lockedMsg: 'Looks premium… because it is. Locked.',
+                    lockedHint: '',
+                    trollLine1: 'You expected a “cheat”? Sure… a cheat of your expectations.',
+                    trollLine2: 'The only real PPPoE cheat is getting it from your ISP/contract/ONT. This page is just for laughs.',
+                    pickIsp: 'Select ISP',
+                    pickIspTip: 'Select an ISP to see username/password format hints and examples. (Premium only)',
+                    pickIspPlaceholder: 'Select an ISP…',
+                    pickIspLocked: 'Premium required',
+                    example: 'Example (reference)',
+                    user: 'PPPoE username',
+                    pass: 'PPPoE password',
+                    previewTitle: 'Data preview',
+                    dataFile: 'cheat_pppoe.json',
+                    tipDetails: 'Details',
+                    themeDark: 'Dark theme',
+                    themeLight: 'Light theme'
+                }
+            }
+        };
+
+        function safe(v) { return String(v ?? '').trim(); }
+
+        createApp({
+            data() {
+                const p = new URLSearchParams(location.search);
+                const premium = p.get('premium') === '1';
+                return {
+                    lang: typeof MikrotikLang !== 'undefined' ? MikrotikLang.get() : 'vi',
+                    theme: typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light',
+                    showToast: false,
+                    premium,
+                    isps: [],
+                    selectedId: '',
+                    rawJsonText: ''
+                };
+            },
+            computed: {
+                t() { return i18n[this.lang]; },
+                selected() {
+                    return this.isps.find(x => x.id === this.selectedId) || null;
+                },
+                previewText() {
+                    if (!this.premium) {
+                        return this.lang === 'vi'
+                            ? '# Premium-only\n# Dữ liệu bị ẩn.'
+                            : '# Premium-only\n# Data hidden.';
+                    }
+                    if (!this.rawJsonText) return this.lang === 'vi' ? '# Đang tải…' : '# Loading…';
+                    return this.rawJsonText;
+                }
+            },
+            methods: {
+                toggleLang() {
+                    if (typeof MikrotikLang !== 'undefined') this.lang = MikrotikLang.toggle();
+                    else this.lang = this.lang === 'vi' ? 'en' : 'vi';
+                },
+                toggleTheme() {
+                    if (typeof MikrotikTheme !== 'undefined') MikrotikTheme.toggle();
+                    this.theme = typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light';
+                },
+                premiumGate(e) {
+                    if (this.premium) return;
+                    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+                    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+                    // quick troll feedback
+                    this.showToast = true;
+                    setTimeout(() => { this.showToast = false; }, 1200);
+                },
+                toast() {
+                    this.showToast = true;
+                    setTimeout(() => { this.showToast = false; }, 2500);
+                },
+                copyText(id) {
+                    const el = document.getElementById(id);
+                    const txt = el ? el.innerText : '';
+                    navigator.clipboard.writeText(txt);
+                    this.toast();
+                },
+                copyRaw(txt) {
+                    const t = safe(txt);
+                    if (!t) return;
+                    navigator.clipboard.writeText(t);
+                    this.toast();
+                },
+                async loadData() {
+                    if (!this.premium) return;
+                    try {
+                        const data = CHEAT_DATA;
+                        this.isps = Array.isArray(data.isps) ? data.isps : [];
+                        this.rawJsonText = JSON.stringify(data, null, 2);
+                    } catch (e) {
+                        this.isps = [];
+                        this.rawJsonText = this.lang === 'vi'
+                            ? '# Lỗi dữ liệu cheat'
+                            : '# Cheat data error';
+                    }
+                }
+            },
+            mounted() {
+                const onTheme = (e) => { this.theme = e.detail.theme; };
+                window.addEventListener('mikrotik-theme-effective-change', onTheme);
+                this._offTheme = () => window.removeEventListener('mikrotik-theme-effective-change', onTheme);
+                const onLang = (e) => { this.lang = (e && e.detail && e.detail.lang) ? e.detail.lang : this.lang; };
+                window.addEventListener('mikrotik-lang-change', onLang);
+                this._offLang = () => window.removeEventListener('mikrotik-lang-change', onLang);
+                this.loadData();
+            },
+            beforeUnmount() {
+                if (this._offTheme) this._offTheme();
+                if (this._offLang) this._offLang();
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

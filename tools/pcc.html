@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <script>(function(){try{var k=localStorage.getItem('mikrotik-theme');var d=false;if(k==='dark')d=true;else if(k!=='light'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)d=true;if(d)document.documentElement.classList.add('theme-dark');}catch(e){}})();</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Load Balancing (PCC) — MikroTik Tools | Zakshin</title>
+    <meta name="description" content="Tạo script MikroTik RouterOS để cộng băng thông (load balancing) theo PCC (Per Connection Classifier) cho nhiều loại WAN (PPPoE/DHCP/LTE/WG...): interface-list WAN/LAN, routing table WAN1..WANn, routes, mangle PCC, NAT và helper DHCP/LTE.">
+    <meta name="keywords" content="MikroTik, RouterOS, PCC, Per Connection Classifier, load balancing, cộng băng thông, mangle, routing mark">
+    <meta name="author" content="Nghĩa Zakshin">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="https://mikrotik.hainghia.net/pcc">
+    <link rel="alternate" hreflang="vi" href="https://mikrotik.hainghia.net/pcc">
+    <link rel="alternate" hreflang="en" href="https://mikrotik.hainghia.net/pcc">
+    <link rel="alternate" hreflang="x-default" href="https://mikrotik.hainghia.net/pcc">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="../sitemap.xml">
+    <link rel="icon" type="image/png" href="../Logo.png">
+    <link rel="apple-touch-icon" href="../Logo.png">
+    <link rel="manifest" href="../site.webmanifest">
+    <meta name="theme-color" content="#f5f7fa">
+    <meta name="format-detection" content="telephone=no">
+
+    <meta property="og:site_name" content="MikroTik Tools — Zakshin">
+    <meta property="og:title" content="Load Balancing (PCC) — MikroTik Tools | Zakshin">
+    <meta property="og:description" content="Sinh script RouterOS load balancing theo PCC cho 2–4 WAN — chạy hoàn toàn trên trình duyệt.">
+    <meta property="og:url" content="https://mikrotik.hainghia.net/pcc">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:image" content="https://mikrotik.hainghia.net/Logo.png">
+    <meta property="og:image:alt" content="MikroTik PCC Load Balancing tool">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Load Balancing (PCC) — MikroTik Tools | Zakshin">
+    <meta name="twitter:description" content="Generate RouterOS PCC load balancing scripts (2–4 WAN).">
+    <meta name="twitter:image" content="https://mikrotik.hainghia.net/Logo.png">
+
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@graph":[
+      {"@type":"WebApplication","name":"Load Balancing (PCC) — MikroTik Tools","url":"https://mikrotik.hainghia.net/pcc","applicationCategory":"NetworkingApplication","operatingSystem":"Web Browser","browserRequirements":"Requires JavaScript.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"Nghĩa Zakshin","url":"https://github.com/ZakShinn"},"description":"Sinh script RouterOS cộng băng thông (load balancing) theo PCC cho 2–4 WAN."},
+      {"@type":"BreadcrumbList","itemListElement":[
+        {"@type":"ListItem","position":1,"name":"Trang chủ","item":"https://mikrotik.hainghia.net/"},
+        {"@type":"ListItem","position":2,"name":"Load Balancing (PCC)","item":"https://mikrotik.hainghia.net/pcc"}
+      ]}
+    ]}
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../assets/site.css">
+    <script src="../assets/theme-ui.js"></script>
+    <script src="../assets/lang-ui.js"></script>
+    <script type="application/json" id="seo-i18n-data">{"en":{"title":"PCC load balancing on MikroTik — Multi-WAN RouterOS scripts | Zakshin","description":"Generate MikroTik RouterOS PCC (Per Connection Classifier) scripts for multi-WAN load balancing and failover. WAN/LAN lists, routing tables, mangle, NAT — tune for your topology.","keywords":"MikroTik, RouterOS, PCC, Per Connection Classifier, load balancing, mangle, routing mark","ogTitle":"PCC load balancing — MikroTik Tools | Zakshin","ogDesc":"Multi-WAN PCC scripts generated in the browser.","twitterTitle":"PCC load balancing — MikroTik | Zakshin","twitterDesc":"RouterOS PCC script generator for 2+ WANs.","ogImageAlt":"MikroTik PCC Load Balancing tool"}}</script>
+    <script src="../assets/seo-i18n.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="app-shell">
+    <div class="noise" aria-hidden="true"></div>
+    <div id="app" class="app-shell">
+        <div v-if="showToast" class="toast-msg">
+            <i class="fas fa-check-circle text-success mr-2"></i> {{ t.ui.copied }}
+        </div>
+
+        <nav class="tool-nav">
+            <div class="tool-nav-inner">
+                <div class="tool-nav-row">
+                    <div class="tool-nav-brand">
+                        <a href="/" class="btn btn-ghost btn-sm btn-icon" title="Trang chủ" aria-label="Trang chủ"><i class="fas fa-home"></i></a>
+                        <span class="tool-nav-logo" aria-hidden="true"><img src="../Logo.png" alt="" width="34" height="34" decoding="async"></span>
+                        <h1 class="tool-nav-title"><i class="fas fa-arrows-split-up-and-left accent-icon"></i> PCC</h1>
+                    </div>
+                    <div class="tool-nav-actions">
+                        <button type="button" class="btn btn-ghost btn-sm btn-icon" @click="toggleTheme" :aria-label="theme === 'dark' ? t.ui.themeLight : t.ui.themeDark" :title="theme === 'dark' ? t.ui.themeLight : t.ui.themeDark">
+                            <i :class="theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" class="btn btn-ghost btn-sm" @click="toggleLang">
+                            <i class="fas fa-globe mr-1"></i> {{ lang === 'vi' ? 'English' : 'Tiếng Việt' }}
+                        </button>
+                    </div>
+                    <div class="tool-nav-meta">
+                        <div><strong>Nghĩa Zakshin</strong></div>
+                        <div class="tool-nav-meta-sub">MikroTik Tools</div>
+                        <div class="tool-nav-meta-sub"><i class="fas fa-circle-info mr-1"></i> {{ t.ui.testedHint }}</div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="tool-main">
+            <div class="layout-split layout-split-wg">
+                <section class="panel">
+                    <h2 class="section-title"><i class="fas fa-sliders mr-2"></i> {{ t.ui.config }}</h2>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.labels.wanMode }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.wanMode }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.wanMode.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.wanMode.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.wanMode.def }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <div class="select">
+                                <select v-model="form.wanMode">
+                                    <option value="auto-pppoe">{{ t.ui.wanModeAuto }}</option>
+                                    <option value="custom">{{ t.ui.wanModeCustom }}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field" v-if="form.wanMode === 'auto-pppoe'">
+                        <label class="label">
+                            {{ t.labels.wanCount }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.wanCount }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.wanCount.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.wanCount.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.wanCount.def }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <input class="input" type="number" min="2" max="999" step="1" v-model.number="form.wanCount">
+                            <p class="help mb-0">{{ t.ui.wanCountHelp }}</p>
+                            <p v-if="wanCountError" class="help mb-0" style="color:var(--danger)">{{ wanCountError }}</p>
+                        </div>
+                    </div>
+
+                    <div class="field" v-else>
+                        <label class="label">
+                            {{ t.labels.wanCustom }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.wanCustom }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.wanCustom.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.wanCustom.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.wanCustom.def }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <textarea class="input" v-model="form.wanCustom" rows="6" style="resize:vertical" placeholder="pppoe-out1 pppoe-out1&#10;ether1 192.168.1.1&#10;wg0 wg0"></textarea>
+                            <p class="help mb-0">{{ t.ui.wanCustomHelp }}</p>
+                            <p v-if="wanCustomError" class="help mb-0" style="color:var(--danger)">{{ wanCustomError }}</p>
+                            <div class="callout" style="margin-top:0.75rem">
+                                <strong><i class="fas fa-list-check mr-1"></i></strong> {{ t.ui.wanCustomGuideTitle }}
+                                <div class="help" style="margin-top:0.5rem; color:var(--muted)">{{ t.ui.wanCustomGuideBody }}</div>
+                                <pre class="script-pre script-pre-sm" style="margin-top:0.6rem; white-space:pre-wrap">{{ t.ui.wanCustomGuideExample }}</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.labels.balanceMode }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.balanceMode }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.balanceMode.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.balanceMode.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.balanceMode.def }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <div class="select">
+                                <select v-model="form.balanceMode">
+                                    <option value="max">{{ t.ui.balanceModeMax }}</option>
+                                    <option value="device">{{ t.ui.balanceModeDevice }}</option>
+                                </select>
+                            </div>
+                            <p class="help mb-0">{{ t.ui.balanceModeHelp }}</p>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.labels.bridgeLan }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.bridgeLan }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.bridgeLan.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.bridgeLan.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.bridgeLan.def }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control"><input class="input" v-model="form.bridgeLan"></div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.labels.lanListName }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.lanListName }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.lanListName.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.lanListName.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.lanListName.def }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control"><input class="input" v-model="form.lanListName"></div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.labels.wanListName }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.wanListName }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.wanListName.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.wanListName.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.wanListName.def }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control"><input class="input" v-model="form.wanListName"></div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.labels.localRanges }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.localRanges }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.localRanges.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.localRanges.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.localRanges.def }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <textarea class="input" v-model="form.localRanges" rows="6" style="resize:vertical" placeholder="192.168.88.0/24&#10;192.168.99.0/24&#10;10.10.10.0/24"></textarea>
+                            <p class="help mb-0">{{ t.ui.localRangesHelp }}</p>
+                        </div>
+                    </div>
+
+                    <div class="wg-checkboxes">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.useWanListNat">
+                            <span class="checkbox-text">{{ t.labels.useWanListNat }}</span>
+                        </label>
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.useAllPppMasq">
+                            <span class="checkbox-text">{{ t.labels.useAllPppMasq }}</span>
+                        </label>
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.enableInboundMarks">
+                            <span class="checkbox-text">{{ t.labels.enableInboundMarks }}</span>
+                        </label>
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.enableDhcpHelper">
+                            <span class="checkbox-text">{{ t.labels.enableDhcpHelper }}</span>
+                        </label>
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.enableLteHelper">
+                            <span class="checkbox-text">{{ t.labels.enableLteHelper }}</span>
+                        </label>
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.disableIpv6">
+                            <span class="checkbox-text">{{ t.labels.disableIpv6 }}</span>
+                        </label>
+                    </div>
+
+                    <div class="callout mb-0">
+                        <strong><i class="fas fa-circle-info mr-1"></i></strong> {{ t.ui.ipv6Note }}
+                    </div>
+
+                    <div class="callout mb-0">
+                        <strong><i class="fas fa-triangle-exclamation mr-1"></i></strong> {{ t.ui.warn }}
+                    </div>
+                </section>
+
+                <section class="panel panel-script">
+                    <h2 class="section-title"><i class="fas fa-code mr-2"></i> {{ t.ui.scriptPanelTitle }}</h2>
+                    <div class="code-container">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:.5rem">
+                            <div style="font-weight:700; color:var(--text)"><i class="fas fa-terminal mr-2"></i> {{ t.ui.scriptToolbarTag }}</div>
+                            <button type="button" class="btn btn-dark btn-sm copy-btn" @click="copyText('main-script')"><i class="fas fa-copy mr-1"></i> {{ t.ui.copy }}</button>
+                        </div>
+                        <pre id="main-script" class="script-pre">{{ scriptText }}</pre>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        const i18n = {
+            vi: {
+                labels: {
+                    wanMode: 'Chế độ WAN',
+                    wanCount: 'Số đường WAN',
+                    wanCustom: 'Danh sách WAN (interface + gateway)',
+                    balanceMode: 'Chế độ cân bằng tải',
+                    bridgeLan: 'Bridge mạng LAN (in-interface)',
+                    lanListName: 'Interface-list LAN',
+                    wanListName: 'Interface-list WAN',
+                    localRanges: 'Dãy IP ngoại lệ (bypass PCC)',
+                    useWanListNat: 'NAT: masquerade out-interface-list=WAN (khuyến nghị)',
+                    useAllPppMasq: 'NAT: masquerade out-interface=all-ppp',
+                    enableInboundMarks: 'Fix return: mark inbound connections (INP) theo từng WAN',
+                    enableDhcpHelper: 'Helper DHCP WAN: tự cập nhật gateway route',
+                    enableLteHelper: 'Helper LTE: scheduler tự cập nhật gateway route',
+                    disableIpv6: 'Tắt IPv6 (khuyến nghị nếu chưa dùng)'
+                },
+                hints: {
+                    wanMode: { aim: 'Chọn cách khai báo WAN. Auto PPPoE = tự dùng pppoe-out1..N. Custom = tự nhập interface + gateway cho mọi loại uplink.', type: 'Select', def: 'Custom list' },
+                    wanCount: { aim: 'Nhập số WAN (2–999). Script sẽ tạo WAN1..WANn và chia PCC đều theo n.', type: 'Number', def: '4' },
+                    wanCustom: { aim: 'Mỗi dòng: <out-interface> <gateway> [type]. type tuỳ chọn: static|dhcp|lte.', type: 'Textarea (mỗi dòng 1 WAN)', def: 'pppoe-out1 pppoe-out1 static\\nether2 ether2 dhcp\\nlte1 lte1 lte' },
+                    balanceMode: { aim: 'Max speed = chia theo connection (đều hơn). Theo thiết bị = “dính” theo IP client (ổn định theo máy).', type: 'Select', def: 'Max speed' },
+                    bridgeLan: { aim: 'Interface LAN để áp PCC ở chain=prerouting (thường là bridge).', type: 'Text', def: 'BridgeLAN' },
+                    lanListName: { aim: 'Tên interface-list chứa LAN interfaces (bridge/vlan...).', type: 'Text', def: 'LAN' },
+                    wanListName: { aim: 'Tên interface-list chứa các uplink/WAN interfaces. Dùng cho NAT out-interface-list.', type: 'Text', def: 'WAN' },
+                    localRanges: { aim: 'Những đích “local”/nội bộ/VPN/site-to-site… cần bypass PCC để không bị mark sai đường. Mỗi dòng 1 CIDR/IP.', type: 'Textarea (one per line)', def: '10.0.0.0/8\\n172.16.0.0/12\\n192.168.0.0/16\\n224.0.0.0/4\\n255.255.255.255' }
+                },
+                ui: {
+                    tipAim: 'Giải thích',
+                    tipType: 'Kiểu',
+                    tipDef: 'Ví dụ',
+                    config: 'Thông số',
+                    scriptPanelTitle: 'Script dán Terminal',
+                    scriptToolbarTag: 'PCC',
+                    copy: 'Copy script',
+                    copied: 'Đã sao chép!',
+                    wanModeAuto: 'Auto PPPoE (pppoe-out1..N)',
+                    wanModeCustom: 'Custom list (mọi loại WAN)',
+                    wanCountHelp: 'Nhập từ 2 đến 999. Lưu ý: số rất lớn sẽ tạo script rất dài (copy/paste chậm).',
+                    wanCustomHelp: 'Mỗi dòng: interface gateway [type]. type: static|dhcp|lte (tuỳ chọn). PPPoE/WG có thể để gateway=interface. DHCP/Static thường gateway là IP. (Tối đa 999 dòng)',
+                    wanCustomGuideTitle: 'Hướng dẫn nhập WAN hỗn hợp',
+                    wanCustomGuideBody: 'Format: <interface> <gateway> [type]. type (tuỳ chọn): static | dhcp | lte. Với PPPoE/WireGuard: gateway thường là chính tên interface (pppoe-out1/wg0). Với WAN DHCP: có thể để gateway=interface và đặt type=dhcp để tool sinh helper cập nhật gateway cho route WANx. Với LTE: đặt type=lte để tool sinh APN + scheduler đồng bộ gateway. Bạn có thể thêm comment bằng dấu # ở cuối dòng. Tối thiểu 2 dòng WAN.',
+                    wanCustomGuideExample: 'Ví dụ (PPPoE + DHCP + LTE)\npppoe-out1 pppoe-out1 static\nether2 ether2 dhcp\nlte1 lte1 lte',
+                    balanceModeMax: 'Max speed tất cả',
+                    balanceModeDevice: 'Chia theo thiết bị (khuyến nghị)',
+                    balanceModeHelp: 'Khuyến nghị: “Chia theo thiết bị” giúp ổn định (ít đổi đường) và giảm lỗi app/game/ngân hàng do IP thay đổi. “Max speed” có thể đều tải hơn nhưng dễ đổi WAN giữa các kết nối, đôi khi gây lỗi session.',
+                    localRangesHelp: 'Nên nhập đầy đủ LAN/VLAN/VPN (đích nội bộ) để PCC không can thiệp các kết nối nội bộ. Có thể giữ preset RFC1918 nếu bạn chỉ cần cơ bản.',
+                    ipv6Note: 'Lưu ý IPv6: Script có dòng tắt IPv6 để tránh “lệch đường” khi bạn chưa cấu hình IPv6. Nếu bạn đang dùng IPv6 (prefix delegation / RA), hãy xoá dòng /ipv6 settings... hoặc cấu hình PCC/route cho IPv6 riêng.',
+                    warn: 'Dùng theo dạng “thần chú”: hãy cấu hình PPPoE, DNS, IP LAN, DHCP trước. Sau đó dán script này là chạy. Lưu ý: nếu router đã có interface-list/NAT/mangle trùng tên, có thể báo lỗi hoặc bị trùng rule — nên kiểm tra và test Safe Mode.',
+                    testedHint: 'BridgeLAN + PPPoE pppoe-outX'
+                }
+            },
+            en: {
+                labels: {
+                    wanMode: 'WAN mode',
+                    wanCount: 'Number of WAN uplinks',
+                    wanCustom: 'WAN list (interface + gateway)',
+                    balanceMode: 'Balancing mode',
+                    bridgeLan: 'LAN interface (in-interface)',
+                    lanListName: 'LAN interface-list name',
+                    wanListName: 'WAN interface-list name',
+                    localRanges: 'Local destination ranges (bypass PCC)',
+                    useWanListNat: 'NAT: masquerade out-interface-list=WAN (recommended)',
+                    useAllPppMasq: 'NAT: masquerade out-interface=all-ppp',
+                    enableInboundMarks: 'Fix return: mark inbound connections (INP) per WAN',
+                    enableDhcpHelper: 'DHCP helper: auto-update route gateway',
+                    enableLteHelper: 'LTE helper: scheduler auto-update route gateway',
+                    disableIpv6: 'Disable IPv6 (recommended if unused)'
+                },
+                hints: {
+                    wanMode: { aim: 'Pick how to declare WAN uplinks. Auto PPPoE uses pppoe-out1..N. Custom lets you input interface + gateway for any uplink type.', type: 'Select', def: 'Custom list' },
+                    wanCount: { aim: 'Enter uplink count (2–999). Script generates WAN1..WANn and spreads PCC evenly.', type: 'Number', def: '4' },
+                    wanCustom: { aim: 'One line: <out-interface> <gateway> [type]. Optional type: static|dhcp|lte.', type: 'Textarea (one per line)', def: 'pppoe-out1 pppoe-out1 static\\nether2 ether2 dhcp\\nlte1 lte1 lte' },
+                    balanceMode: { aim: 'Max speed = per-connection distribution. Per device = stickiness by client IP (stable per device).', type: 'Select', def: 'Max speed' },
+                    bridgeLan: { aim: 'LAN inbound interface for PCC in prerouting (usually a bridge).', type: 'Text', def: 'BridgeLAN' },
+                    lanListName: { aim: 'Interface-list name containing LAN interfaces.', type: 'Text', def: 'LAN' },
+                    wanListName: { aim: 'Interface-list name containing uplink/WAN interfaces. Used by NAT out-interface-list.', type: 'Text', def: 'WAN' },
+                    localRanges: { aim: 'Destinations that must bypass PCC (LAN/VLAN/VPN/site-to-site...). One CIDR/IP per line.', type: 'Textarea (one per line)', def: '10.0.0.0/8\\n172.16.0.0/12\\n192.168.0.0/16\\n224.0.0.0/4\\n255.255.255.255' }
+                },
+                ui: {
+                    tipAim: 'Explain',
+                    tipType: 'Type',
+                    tipDef: 'Example',
+                    config: 'Parameters',
+                    scriptPanelTitle: 'RouterOS paste script',
+                    scriptToolbarTag: 'PCC',
+                    copy: 'Copy script',
+                    copied: 'Copied!',
+                    wanModeAuto: 'Auto PPPoE (pppoe-out1..N)',
+                    wanModeCustom: 'Custom list (any uplinks)',
+                    wanCountHelp: 'Enter a number between 2 and 999. Note: a huge number will generate a very long script.',
+                    wanCustomHelp: 'One line: interface gateway [type]. type: static|dhcp|lte (optional). PPPoE/WG can use interface-as-gateway. DHCP/static WAN often uses an IP next-hop gateway. (Up to 999 lines)',
+                    wanCustomGuideTitle: 'Mixed WAN input guide',
+                    wanCustomGuideBody: 'Format: <interface> <gateway> [type]. Optional type: static | dhcp | lte. For PPPoE/WireGuard: gateway is usually the interface name (pppoe-out1/wg0). For DHCP WAN: you can set gateway=interface and type=dhcp so the tool generates a helper that keeps the WANx route gateway in sync. For LTE: set type=lte so the tool generates APN + scheduler to sync gateway. You can append comments with #. Minimum 2 WAN lines.',
+                    wanCustomGuideExample: 'Example (PPPoE + DHCP + LTE)\npppoe-out1 pppoe-out1 static\nether2 ether2 dhcp\nlte1 lte1 lte',
+                    balanceModeMax: 'Max speed (all traffic)',
+                    balanceModeDevice: 'Per device (recommended)',
+                    balanceModeHelp: 'Recommended: “Per device” keeps sessions stable (less WAN/IP hopping), reducing issues with apps/games/banking that are sensitive to IP changes. “Max speed” may spread load better but can cause more session quirks.',
+                    localRangesHelp: 'Add all internal destination ranges so PCC won’t touch internal flows. Keeping RFC1918 presets is fine for basic setups.',
+                    ipv6Note: 'IPv6 note: This script disables IPv6 to avoid unexpected routing when IPv6 is not configured. If you use IPv6 (prefix delegation / RA), remove the /ipv6 settings... line or add a proper IPv6 PCC/routing setup.',
+                    warn: '“Mantra” style: configure PPPoE, DNS, LAN IP, DHCP first. Then paste the script. If you already have interface-list/NAT/mangle with the same names, review to avoid duplicates and test in Safe Mode.',
+                    testedHint: 'BridgeLAN + PPPoE pppoe-outX'
+                }
+            }
+        };
+
+        function uniqLines(text) {
+            const out = [];
+            const seen = new Set();
+            for (const raw of String(text || '').split('\n')) {
+                const s = raw.replace(/#.*/g, '').trim();
+                if (!s) continue;
+                if (seen.has(s)) continue;
+                seen.add(s);
+                out.push(s);
+            }
+            return out;
+        }
+
+        createApp({
+            data() {
+                return {
+                    lang: typeof MikrotikLang !== 'undefined' ? MikrotikLang.get() : 'vi',
+                    theme: typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light',
+                    showToast: false,
+                    form: {
+                        wanMode: 'auto-pppoe',
+                        wanCount: 2,
+                        balanceMode: 'device',
+                        bridgeLan: 'BridgeLAN',
+                        lanListName: 'LAN',
+                        wanListName: 'WAN',
+                        localRanges: '10.0.0.0/8\n172.16.0.0/12\n192.168.0.0/16\n224.0.0.0/4\n255.255.255.255',
+                        wanCustom: 'pppoe-out1 pppoe-out1\npppoe-out2 pppoe-out2',
+                        useWanListNat: true,
+                        useAllPppMasq: true,
+                        enableInboundMarks: true,
+                        enableDhcpHelper: true,
+                        enableLteHelper: true,
+                        disableIpv6: true
+                    },
+                    fieldMeta: {}
+                };
+            },
+            computed: {
+                t() { return i18n[this.lang]; },
+                effectiveWanCount() {
+                    const n = Number(this.form.wanCount);
+                    if (!Number.isFinite(n)) return null;
+                    const i = Math.trunc(n);
+                    if (i < 2 || i > 999) return null;
+                    return i;
+                },
+                effectiveWans() {
+                    if (this.form.wanMode === 'custom') {
+                        const out = [];
+                        for (const raw of String(this.form.wanCustom || '').split('\n')) {
+                            const s = raw.replace(/#.*/g, '').trim();
+                            if (!s) continue;
+                            const parts = s.split(/[,\t ]+/).filter(Boolean);
+                            const outIf = parts[0];
+                            const gw = parts[1] || outIf;
+                            if (!outIf) continue;
+                            const type = String(parts[2] || 'static').trim().toLowerCase();
+                            out.push({ outIf, gw, type: (type === 'dhcp' || type === 'lte') ? type : 'static' });
+                        }
+                        return out.slice(0, 999);
+                    }
+                    const n = this.effectiveWanCount;
+                    if (!n) return [];
+                    return Array.from({ length: n }, (_, i) => {
+                        const idx = i + 1;
+                        return { outIf: `pppoe-out${idx}`, gw: `pppoe-out${idx}`, type: 'static' };
+                    });
+                },
+                wanCountError() {
+                    if (this.form.wanMode !== 'auto-pppoe') return '';
+                    const n = Number(this.form.wanCount);
+                    if (!Number.isFinite(n)) return this.lang === 'vi' ? 'Vui lòng nhập số.' : 'Please enter a number.';
+                    const i = Math.trunc(n);
+                    if (i < 2 || i > 999) return this.lang === 'vi' ? 'Số WAN phải trong khoảng 2–999.' : 'WAN count must be between 2 and 999.';
+                    return '';
+                },
+                wanCustomError() {
+                    if (this.form.wanMode !== 'custom') return '';
+                    const wans = this.effectiveWans;
+                    if (wans.length < 2) return this.lang === 'vi' ? 'Cần ít nhất 2 dòng WAN (mỗi dòng: interface gateway [type]).' : 'Provide at least 2 WAN lines (interface gateway [type]).';
+                    if (wans.length > 999) return this.lang === 'vi' ? 'Tối đa 999 dòng WAN.' : 'Maximum 999 WAN lines.';
+                    return '';
+                },
+                validationError() {
+                    return this.wanCountError || this.wanCustomError;
+                },
+                scriptText() {
+                    if (this.validationError) {
+                        return (this.lang === 'vi'
+                            ? `# Lỗi cấu hình\n# ${this.validationError}\n`
+                            : `# Configuration error\n# ${this.validationError}\n`);
+                    }
+                    const isVi = this.lang === 'vi';
+                    const wans = this.effectiveWans;
+                    const n = Math.max(2, Math.min(999, wans.length || this.effectiveWanCount || 0));
+                    const bridgeLan = String(this.form.bridgeLan || 'BridgeLAN').trim() || 'BridgeLAN';
+                    const lanListName = String(this.form.lanListName || 'LAN').trim() || 'LAN';
+                    const wanListName = String(this.form.wanListName || 'WAN').trim() || 'WAN';
+                    const pccMode = this.form.balanceMode === 'device' ? 'src-address' : 'both-addresses-and-ports';
+                    const pccBase = `${pccMode}:${n}/`;
+                    const localRanges = uniqLines(this.form.localRanges);
+                    const lines = [];
+
+                    lines.push(isVi
+                        ? `# PCC cân bằng tải — tool-generated`
+                        : `# PCC load balancing — tool-generated`);
+                    lines.push(isVi
+                        ? `# LAN in-interface: ${bridgeLan} | LAN list: ${lanListName} | WAN list: ${wanListName} | WANs: ${n} | PCC: ${pccMode}`
+                        : `# LAN in-interface: ${bridgeLan} | LAN list: ${lanListName} | WAN list: ${wanListName} | WANs: ${n} | PCC: ${pccMode}`);
+                    lines.push('');
+
+                    lines.push(isVi ? `# 1) Interface-list WAN/LAN` : `# 1) Interface-list WAN/LAN`);
+                    lines.push(`/interface list add name=${wanListName}`);
+                    for (let i = 0; i < n; i++) {
+                        const w = wans[i];
+                        lines.push(`/interface list member add interface=${w.outIf} list=${wanListName}`);
+                    }
+                    lines.push(`/interface list add name=${lanListName}`);
+                    lines.push(`/interface list member add interface=${bridgeLan} list=${lanListName}`);
+                    lines.push('');
+
+                    lines.push(isVi ? `# 2) Dải local (bypass PCC)` : `# 2) Local ranges (bypass PCC)`);
+                    for (const r of localRanges.length ? localRanges : ['10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', '224.0.0.0/4', '255.255.255.255']) {
+                        lines.push(`/ip firewall address-list add address=${r} list=${lanListName}`);
+                    }
+                    lines.push('');
+
+                    lines.push(isVi ? `# 3) NAT` : `# 3) NAT`);
+                    if (this.form.useWanListNat) {
+                        lines.push(`/ip firewall nat add chain=srcnat action=masquerade out-interface-list=${wanListName}`);
+                    } else if (this.form.useAllPppMasq) {
+                        lines.push(`/ip firewall nat add chain=srcnat action=masquerade out-interface=all-ppp`);
+                    } else {
+                        for (const w of wans.slice(0, n)) lines.push(`/ip firewall nat add chain=srcnat action=masquerade out-interface=${w.outIf}`);
+                    }
+                    lines.push('');
+
+                    lines.push(isVi ? `# 4) Bypass PCC cho đích local` : `# 4) Bypass PCC for local destinations`);
+                    lines.push(`/ip firewall mangle add action=accept chain=prerouting dst-address-list=${lanListName} in-interface-list=${lanListName}`);
+                    lines.push('');
+
+                    if (this.form.disableIpv6) {
+                        lines.push(isVi ? `# 5) IPv6 (tuỳ chọn): tắt` : `# 5) IPv6 (optional): disable`);
+                        lines.push(`/ipv6 settings set accept-redirects=no accept-router-advertisements=no disable-ipv6=yes forward=no`);
+                        lines.push('');
+                    }
+
+                    if (this.form.enableLteHelper && wans.slice(0, n).some(w => w.type === 'lte')) {
+                        lines.push(isVi
+                            ? `# 6) LTE APN: tránh default route tự động + tắt peer DNS`
+                            : `# 6) LTE APN: avoid auto default route + no peer DNS`);
+                        lines.push(`/interface lte apn set [ find default=yes ] default-route-distance=255 use-peer-dns=no`);
+                        lines.push('');
+                    }
+
+                    lines.push(isVi ? `# 7) Routing tables (RouterOS v7+)` : `# 7) Routing tables (RouterOS v7+)`);
+                    for (let i = 1; i <= n; i++) lines.push(`/routing table add fib name=WAN${i}`);
+                    lines.push('');
+
+                    lines.push(isVi ? `# 8) Default route theo từng table` : `# 8) Default routes per table`);
+                    for (let i = 1; i <= n; i++) {
+                        const w = wans[i - 1] || { outIf: `pppoe-out${i}`, gw: `pppoe-out${i}`, type: 'static' };
+                        lines.push(`/ip route add distance=1 dst-address=0.0.0.0/0 gateway=${w.gw} routing-table=WAN${i}`);
+                    }
+                    lines.push('');
+
+                    if (this.form.enableDhcpHelper) {
+                        const dhcps = wans.slice(0, n).map((w, idx) => ({ ...w, idx: idx + 1 })).filter(w => w.type === 'dhcp');
+                        if (dhcps.length) {
+                            lines.push(isVi
+                                ? `# 9) DHCP helper (tuỳ chọn): đồng bộ gateway route WANx`
+                                : `# 9) DHCP helper (optional): keep WANx route gateway in sync`);
+                            for (const w of dhcps) {
+                                lines.push(`/ip dhcp-client remove [/ip dhcp-client find interface=${w.outIf}]`);
+                                lines.push(`/ip dhcp-client add default-route-distance=102 interface=${w.outIf} add-default-route=no script=":if (\\$bound=1) do={:if ([/ip route get [find where dst-address=0.0.0.0/0 and routing-table=\\\"WAN${w.idx}\\\"] gateway] != \\$\\\"gateway-address\\\" . \\\"%${w.outIf}\\\") do={/ip route set [find where dst-address=0.0.0.0/0 and routing-table=\\\"WAN${w.idx}\\\"] gateway=(\\$\\\"gateway-address\\\" . \\\"%${w.outIf}\\\")}}" use-peer-dns=no use-peer-ntp=no`);
+                            }
+                            lines.push('');
+                        }
+                    }
+
+                    if (this.form.enableLteHelper) {
+                        const ltes = wans.slice(0, n).map((w, idx) => ({ ...w, idx: idx + 1 })).filter(w => w.type === 'lte');
+                        if (ltes.length) {
+                            lines.push(isVi
+                                ? `# 10) LTE helper (tuỳ chọn): scheduler cập nhật gateway route WANx`
+                                : `# 10) LTE helper (optional): scheduler updates WANx route gateway`);
+                            for (const w of ltes) {
+                                lines.push(`/system scheduler add interval=1m name=${w.outIf} on-event=":if ([/interface get [/interface find name=${w.outIf}] running]=yes) do={ :local ltegw; :do {:set ltegw [/ip route get [find where dst-address=0.0.0.0/0 and vrf-interface=\\\"${w.outIf}\\\"] gateway]} on-error={:set ltegw \\\"${w.outIf}\\\"}; :if ([/ip route get [find where dst-address=0.0.0.0/0 and routing-table=\\\"WAN${w.idx}\\\"] gateway] != \\$\\\"ltegw\\\") do={/ip route set [find where dst-address=0.0.0.0/0 and routing-table=\\\"WAN${w.idx}\\\"] gateway=\\$\\\"ltegw\\\"}}" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-time=startup`);
+                            }
+                            lines.push('');
+                        }
+                    }
+
+                    if (this.form.enableInboundMarks) {
+                        lines.push(isVi
+                            ? `# 11) Fix return: mark inbound connections theo từng WAN (INP1..INPn)`
+                            : `# 11) Return-path fix: mark inbound connections per WAN (INP1..INPn)`);
+                        for (let i = 1; i <= n; i++) {
+                            const w = wans[i - 1];
+                            lines.push(`/ip firewall mangle add action=mark-connection chain=input connection-mark=no-mark in-interface=${w.outIf} new-connection-mark=INP${i} passthrough=yes`);
+                            lines.push(`/ip firewall mangle add action=mark-connection chain=forward connection-mark=no-mark src-address-list=!${lanListName} in-interface=${w.outIf} new-connection-mark=INP${i} passthrough=yes`);
+                        }
+                        lines.push('');
+                    }
+
+                    lines.push(isVi
+                        ? `# 12) PCC connection marking (${pccMode})`
+                        : `# 12) PCC connection marking (${pccMode})`);
+                    for (let i = 1; i <= n; i++) {
+                        lines.push(`/ip firewall mangle add action=mark-connection chain=prerouting connection-mark=no-mark dst-address-type=!local in-interface-list=${lanListName} new-connection-mark=WAN${i} passthrough=yes per-connection-classifier=${pccBase}${i - 1}`);
+                    }
+                    lines.push('');
+
+                    lines.push(isVi ? `# 13) Routing marking (LAN -> WANx)` : `# 13) Routing marking (LAN -> WANx)`);
+                    for (let i = 1; i <= n; i++) {
+                        lines.push(`/ip firewall mangle add action=mark-routing chain=prerouting connection-mark=WAN${i} in-interface-list=${lanListName} new-routing-mark=WAN${i} passthrough=no`);
+                    }
+                    lines.push('');
+
+                    if (this.form.enableInboundMarks) {
+                        lines.push(isVi
+                            ? `# 14) Routing marking cho inbound-marked connections (return path)`
+                            : `# 14) Routing marking for inbound-marked connections (return path)`);
+                        for (let i = 1; i <= n; i++) {
+                            lines.push(`/ip firewall mangle add action=mark-routing chain=output connection-mark=INP${i} new-routing-mark=WAN${i} passthrough=no`);
+                            lines.push(`/ip firewall mangle add action=mark-routing chain=prerouting connection-mark=INP${i} src-address-list=${lanListName} new-routing-mark=WAN${i} passthrough=no`);
+                        }
+                    }
+                    lines.push('');
+                    return lines.join('\n');
+                }
+            },
+            methods: {
+                toggleLang() {
+                    if (typeof MikrotikLang !== 'undefined') this.lang = MikrotikLang.toggle();
+                    else this.lang = this.lang === 'vi' ? 'en' : 'vi';
+                },
+                toggleTheme() {
+                    if (typeof MikrotikTheme !== 'undefined') MikrotikTheme.toggle();
+                    this.theme = typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light';
+                },
+                copyText(id) {
+                    navigator.clipboard.writeText(document.getElementById(id).innerText);
+                    this.showToast = true;
+                    setTimeout(() => { this.showToast = false; }, 3000);
+                }
+            },
+            mounted() {
+                const onTheme = (e) => { this.theme = e.detail.theme; };
+                window.addEventListener('mikrotik-theme-effective-change', onTheme);
+                this._offTheme = () => window.removeEventListener('mikrotik-theme-effective-change', onTheme);
+                const onLang = (e) => { this.lang = (e && e.detail && e.detail.lang) ? e.detail.lang : this.lang; };
+                window.addEventListener('mikrotik-lang-change', onLang);
+                this._offLang = () => window.removeEventListener('mikrotik-lang-change', onLang);
+            },
+            beforeUnmount() {
+                if (this._offTheme) this._offTheme();
+                if (this._offLang) this._offLang();
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
+

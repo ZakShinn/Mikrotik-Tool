@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <script>(function(){try{if(localStorage.getItem('mikrotik-theme')==='dark')document.documentElement.classList.add('theme-dark');}catch(e){}})();</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Gợi ý Firewall MikroTik — Script RouterOS cơ bản &amp; hardening | Zakshin</title>
+    <meta name="description" content="Gợi ý firewall cơ bản cho MikroTik RouterOS: interface-list WAN/LAN, input/forward rules, bogon drop, tắt service-port, khóa /ip service, MAC-server, neighbor discovery. Sinh script copy-paste trong trình duyệt.">
+    <meta name="keywords" content="MikroTik, RouterOS, firewall, filter, bogon, hardening, winbox, service-port, rp-filter, Zakshin">
+    <meta name="author" content="Nghĩa Zakshin">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="https://mikrotik.hainghia.net/firewall">
+    <link rel="alternate" hreflang="vi" href="https://mikrotik.hainghia.net/firewall">
+    <link rel="alternate" hreflang="en" href="https://mikrotik.hainghia.net/firewall">
+    <link rel="alternate" hreflang="x-default" href="https://mikrotik.hainghia.net/firewall">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="../sitemap.xml">
+    <link rel="icon" type="image/png" href="../Logo.png">
+    <link rel="apple-touch-icon" href="../Logo.png">
+    <link rel="manifest" href="../site.webmanifest">
+    <meta name="theme-color" content="#f5f7fa">
+    <meta name="format-detection" content="telephone=no">
+
+    <meta property="og:site_name" content="MikroTik Tools — Zakshin">
+    <meta property="og:title" content="Gợi ý Firewall MikroTik — RouterOS | Zakshin">
+    <meta property="og:description" content="Sinh script firewall cơ bản + hardening: input/forward, bogon, services, MAC-server, rp-filter.">
+    <meta property="og:url" content="https://mikrotik.hainghia.net/firewall">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:image" content="https://mikrotik.hainghia.net/Logo.png">
+    <meta property="og:image:alt" content="MikroTik Firewall helper">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Gợi ý Firewall MikroTik | Zakshin">
+    <meta name="twitter:description" content="Generator script firewall RouterOS: rules + hardening — copy paste.">
+    <meta name="twitter:image" content="https://mikrotik.hainghia.net/Logo.png">
+
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@graph":[
+      {"@type":"WebApplication","name":"Gợi ý Firewall MikroTik","url":"https://mikrotik.hainghia.net/firewall","applicationCategory":"NetworkingApplication","operatingSystem":"Web Browser","browserRequirements":"Requires JavaScript.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"Nghĩa Zakshin","url":"https://github.com/ZakShinn"},"description":"Sinh script firewall cơ bản + hardening cho MikroTik RouterOS."},
+      {"@type":"BreadcrumbList","itemListElement":[
+        {"@type":"ListItem","position":1,"name":"Trang chủ","item":"https://mikrotik.hainghia.net/"},
+        {"@type":"ListItem","position":2,"name":"Firewall","item":"https://mikrotik.hainghia.net/firewall"}
+      ]}
+    ]}
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../assets/site.css">
+    <script src="../assets/theme-ui.js"></script>
+    <script src="../assets/lang-ui.js"></script>
+    <script type="application/json" id="seo-i18n-data">{"en":{"title":"MikroTik Firewall ideas — RouterOS filter & hardening scripts | Zakshin","description":"Starter firewall reference for MikroTik RouterOS: WAN/LAN lists, input/forward rules, bogon drops, service hardening, MAC server limits, and more. Generated in your browser — review before production.","keywords":"MikroTik, RouterOS, firewall, filter, bogon, hardening, winbox, service-port, rp-filter, Zakshin","ogTitle":"MikroTik Firewall starter — RouterOS | Zakshin","ogDesc":"Copy-paste firewall + hardening script ideas: input/forward, bogons, services.","twitterTitle":"MikroTik Firewall helper | Zakshin","twitterDesc":"RouterOS firewall script generator — use Safe Mode.","ogImageAlt":"MikroTik Firewall helper"}}</script>
+    <script src="../assets/seo-i18n.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="app-shell">
+    <div class="noise" aria-hidden="true"></div>
+    <div id="app" class="app-shell">
+        <div v-if="showToast" class="toast-msg"><i class="fas fa-check-circle text-success mr-2"></i> {{ t.ui.copied }}</div>
+
+        <nav class="tool-nav">
+            <div class="tool-nav-inner">
+                <div class="tool-nav-row">
+                    <div class="tool-nav-brand">
+                        <a href="/" class="btn btn-ghost btn-sm btn-icon" title="Trang chủ" aria-label="Trang chủ"><i class="fas fa-home"></i></a>
+                        <span class="tool-nav-logo" aria-hidden="true"><img src="../Logo.png" alt="" width="34" height="34" decoding="async"></span>
+                        <h1 class="tool-nav-title"><i class="fas fa-shield-halved accent-icon"></i> Firewall</h1>
+                    </div>
+                    <div class="tool-nav-actions">
+                        <button type="button" class="btn btn-ghost btn-sm btn-icon" @click="toggleTheme" :aria-label="theme === 'dark' ? t.ui.themeLight : t.ui.themeDark" :title="theme === 'dark' ? t.ui.themeLight : t.ui.themeDark">
+                            <i :class="theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" class="btn btn-ghost btn-sm" @click="toggleLang">
+                            <i class="fas fa-globe mr-1"></i> {{ lang === 'vi' ? 'English' : 'Tiếng Việt' }}
+                        </button>
+                    </div>
+                    <div class="tool-nav-meta">
+                        <div><strong>Nghĩa Zakshin</strong></div>
+                        <div class="tool-nav-meta-sub">MikroTik Tools</div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="tool-main">
+            <div class="layout-split">
+                <section class="panel">
+                    <h2 class="section-title"><i class="fas fa-sliders-h mr-2"></i> {{ t.ui.serverConfig }}</h2>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.labels.template }}
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.template }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}</span><span class="t-val">{{ t.hints.template.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}</span><span class="t-val">{{ t.hints.template.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}</span><span class="t-val"><span class="tip-def">{{ t.hints.template.def }}</span></span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <div class="select">
+                                <select v-model="form.template">
+                                    <option value="defconf">{{ t.ui.tplDefconf }}</option>
+                                    <option value="rickfrey">{{ t.ui.tplRick }}</option>
+                                    <option value="rickfrey5">{{ t.ui.tplRick5 }}</option>
+                                    <option value="rickfrey6">{{ t.ui.tplRick6 }}</option>
+                                    <option value="rickfrey61">{{ t.ui.tplRick61 }}</option>
+                                    <option value="rickfrey61lite">{{ t.ui.tplRick61Lite }}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="callout">
+                        <strong><i class="fas fa-compass mr-1"></i></strong> {{ templateGuidance }}
+                    </div>
+
+                    <div v-for="field in fieldsList" :key="field" class="field">
+                        <label class="label">
+                            {{ t.labels[field] }}
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels[field] }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}</span><span class="t-val">{{ t.hints[field].aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}</span><span class="t-val">{{ t.hints[field].type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}</span><span class="t-val"><span class="tip-def">{{ t.hints[field].def }}</span></span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control"><input class="input" v-model="form[field]"></div>
+                    </div>
+
+                    <div class="field">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.allowRemoteInput">
+                            <span class="checkbox-text">{{ t.ui.allowRemoteInput }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.ui.allowRemoteInputTip }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="field">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.acceptLanToWan">
+                            <span class="checkbox-text">{{ t.ui.acceptLanToWan }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.ui.acceptLanToWanTip }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="field">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.hardening">
+                            <span class="checkbox-text">{{ t.ui.hardening }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.ui.hardeningTip }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="field" v-if="form.template === 'defconf'">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.includeIpv6Firewall">
+                            <span class="checkbox-text">{{ t.ui.includeIpv6Firewall }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.ui.includeIpv6FirewallTip }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="field" v-if="isRickTemplate">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="form.includeCommonPorts">
+                            <span class="checkbox-text">{{ t.ui.includeCommonPorts }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.ui.includeCommonPortsTip }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="field" v-if="isRickTemplate">
+                        <label class="label">
+                            {{ t.ui.rickOriginal }}
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.ui.rickOriginalTip }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <textarea class="input" v-model="form.rickOriginalScript" rows="6" style="resize:vertical"></textarea>
+                            <p class="help mb-0">{{ t.ui.rickOriginalHelp }}</p>
+                        </div>
+                    </div>
+
+                    <div class="callout mb-0">
+                        <strong><i class="fas fa-triangle-exclamation mr-1"></i></strong> {{ t.ui.warn }}
+                    </div>
+                </section>
+
+                <section class="panel panel-script">
+                    <div class="code-container">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:.5rem">
+                            <div style="font-weight:700; color:var(--text)"><i class="fas fa-terminal mr-2"></i> {{ t.ui.scriptTitle }}</div>
+                            <button type="button" class="btn btn-dark btn-sm copy-btn" @click="copyText('main-script')"><i class="fas fa-copy mr-1"></i> {{ t.ui.copy }}</button>
+                        </div>
+                        <pre id="main-script" class="script-pre">{{ generatedScript }}</pre>
+                    </div>
+                    <div class="callout mb-0">
+                        <strong><i class="fas fa-info-circle mr-1"></i></strong> {{ t.ui.note }}
+                    </div>
+                    <div class="callout mt-2 mb-0">
+                        <strong><i class="fas fa-link mr-1"></i></strong> {{ t.ui.moreFirewall }}
+                        <a href="https://rickfreyconsulting.com" target="_blank" rel="noopener noreferrer">rickfreyconsulting.com</a>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        const i18n = {
+            vi: {
+                labels: {
+                    template: 'Template firewall',
+                    wanIf: 'Interface WAN (uplink)',
+                    lanIfs: 'Interface LAN (danh sách)',
+                    remoteAccessNet: 'Subnet Remote Access',
+                    exemptNets: 'Exempt Addresses (danh sách subnet)',
+                    ntpPrimary: 'NTP primary',
+                    ntpSecondary: 'NTP secondary'
+                },
+                hints: {
+                    template: { aim: 'Chọn kiểu script firewall bạn muốn sinh.', type: 'Dropdown', def: 'defconf' },
+                    wanIf: { aim: 'Interface nối ra internet (ether1 / pppoe-out1 / vlan-wan...).', type: 'Tên interface', def: 'ether1' },
+                    lanIfs: { aim: 'Các interface phía LAN để đưa vào interface-list LAN. Nhiều interface cách nhau dấu phẩy.', type: 'Danh sách', def: 'bridge,ether2,ether3' },
+                    remoteAccessNet: { aim: 'IP/subnet được phép quản trị (Winbox/API/...) vào chain input. Nên là LAN/VPN của bạn.', type: 'CIDR', def: '192.168.88.0/24' },
+                    exemptNets: { aim: 'Danh sách subnet “được miễn trừ” theo Rick Frey script. BẮT BUỘC thêm đủ các LAN/VPN subnet bạn quản trị.', type: 'CIDR, phẩy', def: '192.168.88.0/24,10.10.10.0/24' },
+                    ntpPrimary: { aim: 'IP NTP server (hoặc đổi sang hostname nếu bạn tự dùng /system ntp client với DNS).', type: 'IPv4', def: '216.239.35.0' },
+                    ntpSecondary: { aim: 'NTP dự phòng.', type: 'IPv4', def: '129.250.35.250' }
+                },
+                ui: {
+                    tipDetails: 'Chi tiết',
+                    tipAim: 'Ý nghĩa',
+                    tipType: 'Kiểu',
+                    tipDef: 'Ví dụ',
+                    serverConfig: 'Thông số',
+                    scriptTitle: 'Script RouterOS',
+                    copy: 'Copy script',
+                    copied: 'Đã sao chép!',
+                    tplDefconf: 'Default (defconf + hardening)',
+                    tplRick: 'Rick Frey Basic Firewall Rev 4.0 (Free)',
+                    tplRick5: 'Rick Frey Basic Firewall Rev 5.0 (Free)',
+                    tplRick6: 'Rick Frey Basic Firewall Rev 6.0 IPv4 (Free)',
+                    tplRick61: 'Rick Frey Basic Firewall Rev 6.1 IPv4 (Free)',
+                    tplRick61Lite: 'Rick Frey Basic Firewall Rev 6.1 IPv4 — Lite (Free)',
+                    allowRemoteInput: 'Cho phép Remote Access vào router (chain=input)',
+                    allowRemoteInputTip: 'Rule này chấp nhận traffic input từ address-list Remote_Access. Nếu tắt, router chỉ nhận input từ LAN (interface-list LAN) và ICMP/established.',
+                    acceptLanToWan: 'Cho phép LAN → WAN (internet) cho kết nối mới',
+                    acceptLanToWanTip: 'Nên bật nếu bạn có rule “drop all forward” ở cuối. Không bật sẽ dễ “mất internet” vì forward new bị drop.',
+                    hardening: 'Hardening (tắt service-port, khóa /ip service, MAC-server, neighbor discovery, rp-filter strict)',
+                    hardeningTip: 'Đây là các bước “giảm bề mặt tấn công” phổ biến. Nếu bạn cần SSH/WebFig/API thì tự bật lại và giới hạn theo subnet.',
+                    includeIpv6Firewall: 'Kèm firewall IPv6 (defconf)',
+                    includeIpv6FirewallTip: 'Bật nếu router bạn đang dùng IPv6. Nếu chưa dùng IPv6 thì có thể tắt để script ngắn hơn.',
+                    includeCommonPorts: 'Rick Frey: kèm danh sách “Common Ports” (rất dài)',
+                    includeCommonPortsTip: 'Bật sẽ chèn thêm block “Manage Common Ports” như bản public. Không cần thì tắt để script ngắn và dễ review.',
+                    rickOriginal: 'Rick Frey: Script gốc (tuỳ chọn)',
+                    rickOriginalTip: 'Dán nguyên script gốc (Rev tương ứng) vào đây để giữ 100% nội dung. Công cụ sẽ chỉ chèn thêm phần “cài đặt thông số” ở đầu (ví dụ Exempt Addresses). Nếu để trống sẽ dùng bản có sẵn trong tool.',
+                    rickOriginalHelp: 'Nếu bạn dán script gốc: hãy đảm bảo dấu ngoặc kép là chuẩn RouterOS (") và kiểm tra lại interface-list / address-list theo mạng của bạn.',
+                    warn: 'Script này là khung gợi ý. Nếu bạn dán trên router đang chạy, hãy backup/export trước và kiểm tra trùng rule/service (đặc biệt firewall filter/NAT).',
+                    note: 'Gợi ý: Sau khi dán, kiểm tra interface-list LAN có đủ interface (bridge/ports). Với Rick Frey: nhớ điền “Exempt Addresses” đủ LAN/VPN và review lại /ip service (script gốc có thể bật telnet/www/ssh).',
+                    guideDefconf: 'Chọn “Default” nếu bạn cần khung firewall gọn, gần defconf RouterOS, dễ hiểu và dễ sửa cho mạng gia đình/SMB. Phù hợp khi bạn chỉ cần chặn input từ WAN, drop bogon, và hardening dịch vụ.',
+                    guideRick4: 'Chọn “Rev 4.0” nếu bạn muốn mẫu Rick Frey đời cũ để tham khảo (brute-force stages + virus chain) và bạn sẵn sàng tự review lại các phần /ip service & service-port vì script gốc có thể bật một số dịch vụ.',
+                    guideRick5: 'Chọn “Rev 5.0” nếu bạn muốn bản “cổ điển” nhưng chỉnh lại hợp lý hơn (bật connection tracking, bogons list chi tiết hơn). Vẫn cần điền Exempt Addresses đầy đủ và test trong Safe Mode.',
+                    guideRick6: 'Chọn “Rev 6.0 IPv4” nếu bạn cần bộ rule nâng cao theo kiểu zone-based (LAN/WAN interface-list), có whitelist/blacklist URL, port scan detection nâng cao, DNS-proxy protection, và cơ chế tải blacklist định kỳ (scheduler + scripts). Phù hợp router mạnh hơn và bạn phải review kỹ trước khi dùng.',
+                    guideRick61: 'Chọn “Rev 6.1 IPv4” nếu bạn muốn bản nâng cấp của 6.x có thêm các mảng như raw/NAT (DNS redirect), cấu trúc zone-based và blacklist scheduler. Phù hợp khi bạn có nhu cầu bảo vệ DNS proxy/port scan sâu hơn và router đủ mạnh; bắt buộc review + test Safe Mode trước khi áp.',
+                    guideRick61Lite: 'Chọn “Rev 6.1 Lite” nếu bạn muốn phong cách 6.1 (zone-based + DNS protection + port scan/brute-force) nhưng KHÔNG muốn phần tải blacklist tự động (scripts/scheduler) để nhẹ router hơn. Vẫn cần review kỹ và test Safe Mode.',
+                    moreFirewall: 'Xem thêm firewall tại',
+                    themeDark: 'Giao diện tối',
+                    themeLight: 'Giao diện sáng'
+                }
+            },
+            en: {
+                labels: {
+                    template: 'Firewall template',
+                    wanIf: 'WAN interface (uplink)',
+                    lanIfs: 'LAN interfaces (list)',
+                    remoteAccessNet: 'Remote access subnet',
+                    exemptNets: 'Exempt Addresses (subnets list)',
+                    ntpPrimary: 'NTP primary',
+                    ntpSecondary: 'NTP secondary'
+                },
+                hints: {
+                    template: { aim: 'Pick which firewall script template to generate.', type: 'Dropdown', def: 'defconf' },
+                    wanIf: { aim: 'Your internet-facing interface (ether1 / pppoe-out1 / vlan-wan...).', type: 'Interface name', def: 'ether1' },
+                    lanIfs: { aim: 'Interfaces to include in interface-list LAN. Comma-separated.', type: 'List', def: 'bridge,ether2,ether3' },
+                    remoteAccessNet: { aim: 'CIDR allowed to manage the router (input chain). Prefer your LAN/VPN range.', type: 'CIDR', def: '192.168.88.0/24' },
+                    exemptNets: { aim: 'Comma-separated subnets that are exempt in the Rick Frey script. MUST include all LAN/VPN subnets you admin from.', type: 'CIDR, comma', def: '192.168.88.0/24,10.10.10.0/24' },
+                    ntpPrimary: { aim: 'NTP server IP (adjust to your preference).', type: 'IPv4', def: '216.239.35.0' },
+                    ntpSecondary: { aim: 'Fallback NTP.', type: 'IPv4', def: '129.250.35.250' }
+                },
+                ui: {
+                    tipDetails: 'Details',
+                    tipAim: 'Meaning',
+                    tipType: 'Type',
+                    tipDef: 'Example',
+                    serverConfig: 'Parameters',
+                    scriptTitle: 'RouterOS script',
+                    copy: 'Copy script',
+                    copied: 'Copied!',
+                    tplDefconf: 'Default (defconf + hardening)',
+                    tplRick: 'Rick Frey Basic Firewall Rev 4.0 (Free)',
+                    tplRick5: 'Rick Frey Basic Firewall Rev 5.0 (Free)',
+                    tplRick6: 'Rick Frey Basic Firewall Rev 6.0 IPv4 (Free)',
+                    tplRick61: 'Rick Frey Basic Firewall Rev 6.1 IPv4 (Free)',
+                    tplRick61Lite: 'Rick Frey Basic Firewall Rev 6.1 IPv4 — Lite (Free)',
+                    allowRemoteInput: 'Allow remote management (chain=input)',
+                    allowRemoteInputTip: 'Accepts input traffic from address-list Remote_Access. If off, only LAN (interface-list LAN), ICMP and established traffic can reach the router.',
+                    acceptLanToWan: 'Allow LAN → WAN for new connections',
+                    acceptLanToWanTip: 'Recommended if you keep a final “drop all forward”. Without it, new forward traffic may be dropped (no internet).',
+                    hardening: 'Hardening (service-port off, lock /ip service, MAC-server off, neighbor discovery off, rp-filter strict)',
+                    hardeningTip: 'Common attack-surface reduction defaults. If you need SSH/WebFig/API, re-enable and restrict by subnet.',
+                    includeIpv6Firewall: 'Include IPv6 firewall (defconf)',
+                    includeIpv6FirewallTip: 'Enable if your router uses IPv6. Disable to keep the script shorter.',
+                    includeCommonPorts: 'Rick Frey: include “Common Ports” list (very long)',
+                    includeCommonPortsTip: 'When enabled, the script includes the public “Manage Common Ports” section. Leave off for a shorter, easier-to-review script.',
+                    rickOriginal: 'Rick Frey: Original script (optional)',
+                    rickOriginalTip: 'Paste the full upstream script (matching the selected revision) to preserve 100% content. The tool will only prepend a small “parameter setup” block (e.g., Exempt Addresses). Leave empty to use the built-in version.',
+                    rickOriginalHelp: 'If you paste the original: ensure RouterOS-compatible quotes (") and review interface-lists/address-lists for your environment.',
+                    warn: 'This is a starter template. On an existing router, export/backup first and watch for duplicate rules/services.',
+                    note: 'Tip: Ensure LAN interface-list has your bridge/ports. For Rick Frey: fill “Exempt Addresses” with all LAN/VPN subnets and re-check /ip service (the upstream script may enable telnet/www/ssh).',
+                    guideDefconf: 'Pick “Default” for a compact, defconf-like baseline that’s easy to understand and customize (home/SMB). Good when you mainly want to drop WAN input, bogons, and apply service hardening.',
+                    guideRick4: 'Pick “Rev 4.0” if you want the older Rick Frey template as a reference (brute-force stages + virus chain). You MUST review /ip service and service-port defaults before applying.',
+                    guideRick5: 'Pick “Rev 5.0” for a more “classic” full template (connection tracking enabled, richer bogons list). Still requires Exempt Addresses and careful Safe Mode testing.',
+                    guideRick6: 'Pick “Rev 6.0 IPv4” for an advanced zone-based setup (LAN/WAN interface lists), URL whitelists/blacklists, advanced port scan detection, DNS proxy protection, plus scheduled blacklist downloads (scripts + scheduler). Use on capable routers and review carefully before production.',
+                    guideRick61: 'Pick “Rev 6.1 IPv4” if you want an updated 6.x-style template that also leverages raw/NAT (e.g., DNS redirect), zone-based structure, and blacklist scheduler. Best for capable routers; review and Safe Mode test before deploying.',
+                    guideRick61Lite: 'Pick “Rev 6.1 Lite” if you want the 6.1-style zone-based rules (DNS protection, port scan/brute-force logic) but without scheduled blacklist downloads (scripts/scheduler) to reduce router load. Still review and Safe Mode test.',
+                    moreFirewall: 'More firewall resources at',
+                    themeDark: 'Dark theme',
+                    themeLight: 'Light theme'
+                }
+            }
+        };
+
+        createApp({
+            data() {
+                return {
+                    lang: typeof MikrotikLang !== 'undefined' ? MikrotikLang.get() : 'vi',
+                    theme: typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light',
+                    showToast: false,
+                    fieldsList: ['wanIf', 'lanIfs', 'remoteAccessNet', 'exemptNets', 'ntpPrimary', 'ntpSecondary'],
+                    form: {
+                        template: 'defconf',
+                        wanIf: 'ether1',
+                        lanIfs: 'bridge',
+                        remoteAccessNet: '192.168.88.0/24',
+                        exemptNets: '192.168.88.0/24',
+                        ntpPrimary: '216.239.35.0',
+                        ntpSecondary: '129.250.35.250',
+                        allowRemoteInput: true,
+                        acceptLanToWan: true,
+                        hardening: true,
+                        includeIpv6Firewall: true,
+                        includeCommonPorts: false,
+                        rickOriginalScript: ''
+                    }
+                };
+            },
+            computed: {
+                t() { return i18n[this.lang]; },
+                templateGuidance() {
+                    const ui = this.t.ui;
+                    if (this.form.template === 'rickfrey') return ui.guideRick4;
+                    if (this.form.template === 'rickfrey5') return ui.guideRick5;
+                    if (this.form.template === 'rickfrey6') return ui.guideRick6;
+                    if (this.form.template === 'rickfrey61') return ui.guideRick61;
+                    if (this.form.template === 'rickfrey61lite') return ui.guideRick61Lite;
+                    return ui.guideDefconf;
+                },
+                isRickTemplate() {
+                    return (this.form.template || '').startsWith('rickfrey');
+                },
+                exemptNetworks() {
+                    return (this.form.exemptNets || '')
+                        .split(',')
+                        .map(s => (s || '').trim())
+                        .filter(Boolean);
+                },
+                lanInterfaces() {
+                    return (this.form.lanIfs || '')
+                        .split(',')
+                        .map(s => (s || '').trim())
+                        .filter(Boolean);
+                },
+                generatedScript() {
+                    if (this.isRickTemplate) {
+                        const base = (this.form.rickOriginalScript || '').trim() || this.builtInRickScript();
+                        const prefix = this.rickParamPrefix();
+                        return (prefix ? (prefix + '\n\n') : '') + base;
+                    }
+                    if (this.form.template === 'rickfrey') return this.genRickFreyScript();
+                    if (this.form.template === 'rickfrey5') return this.genRickFrey5Script();
+                    if (this.form.template === 'rickfrey6') return this.genRickFrey6Script();
+                    if (this.form.template === 'rickfrey61') return this.genRickFrey61Script();
+                    if (this.form.template === 'rickfrey61lite') return this.genRickFrey61LiteScript();
+
+                    const ntpP = (this.form.ntpPrimary || '216.239.35.0').trim() || '216.239.35.0';
+                    const ntpS = (this.form.ntpSecondary || '129.250.35.250').trim() || '129.250.35.250';
+                    const remoteNet = (this.form.remoteAccessNet || '192.168.88.0/24').trim() || '192.168.88.0/24';
+
+                    const lines = [];
+                    const isVi = this.lang === 'vi';
+
+                    lines.push('/ip firewall filter');
+                    lines.push('add action=accept chain=input comment="defconf: accept established,related,untracked" connection-state=established,related,untracked');
+                    lines.push('add action=drop chain=input comment="defconf: drop invalid" connection-state=invalid');
+                    lines.push('add action=accept chain=input comment="defconf: accept ICMP" protocol=icmp');
+                    lines.push('add action=accept chain=input comment="defconf: accept to local loopback (for CAPsMAN)" dst-address=127.0.0.1 in-interface=lo src-address=127.0.0.1');
+                    lines.push('add action=drop chain=input comment="defconf: drop all not coming from LAN" in-interface-list=!LAN');
+                    lines.push('');
+                    lines.push('add action=accept chain=forward comment="defconf: accept in ipsec policy" ipsec-policy=in,ipsec');
+                    lines.push('add action=accept chain=forward comment="defconf: accept out ipsec policy" ipsec-policy=out,ipsec');
+                    lines.push('add action=fasttrack-connection chain=forward comment="defconf: fasttrack" connection-state=established,related');
+                    lines.push('add action=accept chain=forward comment="defconf: accept established,related, untracked" connection-state=established,related,untracked');
+                    lines.push('add action=drop chain=forward comment="defconf: drop invalid" connection-state=invalid');
+                    lines.push('add action=drop chain=forward comment="defconf: drop all from WAN not DSTNATed" connection-nat-state=!dstnat in-interface-list=WAN');
+                    lines.push('');
+                    lines.push('/ip firewall nat');
+                    lines.push('add action=masquerade chain=srcnat comment="defconf: masquerade" ipsec-policy=out,none out-interface-list=WAN');
+                    lines.push('');
+
+                    if (this.form.includeIpv6Firewall) {
+                        lines.push('/ipv6 firewall address-list');
+                        lines.push('add address=::/128 comment="defconf: unspecified address" list=bad_ipv6');
+                        lines.push('add address=::1/128 comment="defconf: lo" list=bad_ipv6');
+                        lines.push('add address=fec0::/10 comment="defconf: site-local" list=bad_ipv6');
+                        lines.push('add address=::ffff:0.0.0.0/96 comment="defconf: ipv4-mapped" list=bad_ipv6');
+                        lines.push('add address=::/96 comment="defconf: ipv4 compat" list=bad_ipv6');
+                        lines.push('add address=100::/64 comment="defconf: discard only " list=bad_ipv6');
+                        lines.push('add address=2001:db8::/32 comment="defconf: documentation" list=bad_ipv6');
+                        lines.push('add address=2001:10::/28 comment="defconf: ORCHID" list=bad_ipv6');
+                        lines.push('add address=3ffe::/16 comment="defconf: 6bone" list=bad_ipv6');
+                        lines.push('/ipv6 firewall filter');
+                        lines.push('add action=accept chain=input comment="defconf: accept established,related,untracked" connection-state=established,related,untracked');
+                        lines.push('add action=drop chain=input comment="defconf: drop invalid" connection-state=invalid');
+                        lines.push('add action=accept chain=input comment="defconf: accept ICMPv6" protocol=icmpv6');
+                        lines.push('add action=accept chain=input comment="defconf: accept UDP traceroute" dst-port=33434-33534 protocol=udp');
+                        lines.push('add action=accept chain=input comment="defconf: accept DHCPv6-Client prefix delegation." dst-port=546 protocol=udp src-address=fe80::/10');
+                        lines.push('add action=accept chain=input comment="defconf: accept IKE" dst-port=500,4500 protocol=udp');
+                        lines.push('add action=accept chain=input comment="defconf: accept ipsec AH" protocol=ipsec-ah');
+                        lines.push('add action=accept chain=input comment="defconf: accept ipsec ESP" protocol=ipsec-esp');
+                        lines.push('add action=accept chain=input comment="defconf: accept all that matches ipsec policy" ipsec-policy=in,ipsec');
+                        lines.push('add action=drop chain=input comment="defconf: drop everything else not coming from LAN" in-interface-list=!LAN');
+                        lines.push('add action=fasttrack-connection chain=forward comment="defconf: fasttrack6" connection-state=established,related');
+                        lines.push('add action=accept chain=forward comment="defconf: accept established,related,untracked" connection-state=established,related,untracked');
+                        lines.push('add action=drop chain=forward comment="defconf: drop invalid" connection-state=invalid');
+                        lines.push('add action=drop chain=forward comment="defconf: drop packets with bad src ipv6" src-address-list=bad_ipv6');
+                        lines.push('add action=drop chain=forward comment="defconf: drop packets with bad dst ipv6" dst-address-list=bad_ipv6');
+                        lines.push('add action=drop chain=forward comment="defconf: rfc4890 drop hop-limit=1" hop-limit=equal:1 protocol=icmpv6');
+                        lines.push('add action=accept chain=forward comment="defconf: accept ICMPv6" protocol=icmpv6');
+                        lines.push('add action=accept chain=forward comment="defconf: accept HIP" protocol=139');
+                        lines.push('add action=accept chain=forward comment="defconf: accept IKE" dst-port=500,4500 protocol=udp');
+                        lines.push('add action=accept chain=forward comment="defconf: accept ipsec AH" protocol=ipsec-ah');
+                        lines.push('add action=accept chain=forward comment="defconf: accept ipsec ESP" protocol=ipsec-esp');
+                        lines.push('add action=accept chain=forward comment="defconf: accept all that matches ipsec policy" ipsec-policy=in,ipsec');
+                        lines.push('add action=drop chain=forward comment="defconf: drop everything else not coming from LAN" in-interface-list=!LAN');
+                        lines.push('');
+                    }
+
+                    if (this.form.hardening) {
+                        lines.push(isVi ? '# Hardening (gia cố bảo mật)' : '# Hardening');
+                        lines.push('/ip firewall service-port');
+                        lines.push('set ftp disabled=yes');
+                        lines.push('set tftp disabled=yes');
+                        lines.push('set irc disabled=yes');
+                        lines.push('set h323 disabled=yes');
+                        lines.push('set sip disabled=yes');
+                        lines.push('set pptp disabled=yes');
+                        lines.push('set udplite disabled=yes');
+                        lines.push('set dccp disabled=yes');
+                        lines.push('set sctp disabled=yes');
+                        lines.push('');
+                        lines.push('/ip service');
+                        lines.push('set telnet disabled=yes');
+                        lines.push('set ftp disabled=yes');
+                        lines.push('set www disabled=yes');
+                        lines.push('set ssh disabled=yes');
+                        lines.push('set api disabled=yes');
+                        lines.push('set winbox address=' + remoteNet);
+                        lines.push('set api-ssl disabled=yes');
+                        lines.push('');
+                        lines.push('/tool bandwidth-server');
+                        lines.push('set enabled=no');
+                        lines.push('');
+                        lines.push('/tool mac-server');
+                        lines.push('set allowed-interface-list=none');
+                        lines.push('');
+                        lines.push('/tool mac-server mac-winbox');
+                        lines.push('set allowed-interface-list=none');
+                        lines.push('');
+                        lines.push('/tool mac-server ping');
+                        lines.push('set enabled=no');
+                        lines.push('');
+                        lines.push('/ip neighbor discovery-settings');
+                        lines.push('set discover-interface-list=none');
+                        lines.push('');
+                        lines.push('/ip settings set rp-filter=strict');
+                        lines.push('');
+                        lines.push('/system ntp client');
+                        lines.push('set primary-ntp=' + ntpP + ' secondary-ntp=' + ntpS);
+                    }
+
+                    return lines.join('\n');
+                }
+            },
+            methods: {
+                toggleLang() {
+                    if (typeof MikrotikLang !== 'undefined') this.lang = MikrotikLang.toggle();
+                    else this.lang = this.lang === 'vi' ? 'en' : 'vi';
+                },
+                toggleTheme() {
+                    if (typeof MikrotikTheme !== 'undefined') MikrotikTheme.toggle();
+                    this.theme = typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light';
+                },
+                rickParamPrefix() {
+                    // Only parameter setup; do not alter the original script body.
+                    const ex = this.exemptNetworks.length ? this.exemptNetworks : [];
+                    if (!ex.length) return '';
+                    const lines = [];
+                    const isVi = this.lang === 'vi';
+                    lines.push(isVi ? '# Tham số (tool-generated)' : '# Parameters (tool-generated)');
+                    lines.push('/ip firewall address-list');
+                    for (const n of ex) lines.push('add list="Exempt Addresses" address=' + n + ' disabled=no');
+                    return lines.join('\n');
+                },
+                builtInRickScript() {
+                    // Fallback to built-in generator output if user didn't paste the upstream original.
+                    if (this.form.template === 'rickfrey') return this.genRickFreyScript();
+                    if (this.form.template === 'rickfrey5') return this.genRickFrey5Script();
+                    if (this.form.template === 'rickfrey6') return this.genRickFrey6Script();
+                    if (this.form.template === 'rickfrey61') return this.genRickFrey61Script();
+                    if (this.form.template === 'rickfrey61lite') return this.genRickFrey61LiteScript();
+                    return '';
+                },
+                genRickFreyScript() {
+                    // Rick Frey's Basic MikroTik Firewall Rev 4.0 (Free Version) — user-provided snippet.
+                    // This generator adds an "Exempt Addresses" list based on the form.
+                    const lines = [];
+                    lines.push('#########################################################################################################');
+                    lines.push('#  Rick Frey\'s Basic MikroTik Firewall Rev 4.0 (Free Version)                                           #');
+                    lines.push('#########################################################################################################');
+                    lines.push('# Author: Rick Frey                                                                                     #');
+                    lines.push('# email: support@rickfreyconsulting.com                                                                 #');
+                    lines.push('# Username in MikroTik Forum is rickfrey                                                                #');
+                    lines.push('#########################################################################################################');
+                    lines.push('# License: Free for public use. May not be sold.                                                        #');
+                    lines.push('#########################################################################################################');
+                    lines.push('');
+                    lines.push('###########################################################################################################################');
+                    lines.push('#### Must Add Admin IP Addresses in the Address List for Administering the Network #########################################');
+                    lines.push('#### BE SURE TO INCLUDE ALL LAN SUBNETS!!!! ################################################################################');
+                    lines.push('###########################################################################################################################');
+                    lines.push('/ip firewall address-list');
+                    const ex = this.exemptNetworks.length ? this.exemptNetworks : [(this.form.remoteAccessNet || '192.168.88.0/24').trim() || '192.168.88.0/24'];
+                    for (const n of ex) lines.push('add list="Exempt Addresses" address=' + n + ' disabled=no');
+                    lines.push('');
+                    lines.push('###########################################################################################################################');
+                    lines.push('#### Drop Invalid Connections                                                                                          ####');
+                    lines.push('###########################################################################################################################');
+                    lines.push('/ip firewall filter');
+                    lines.push('add action=drop chain=input comment="Drop Invalid Connections" connection-state=invalid disabled=no');
+                    lines.push('add action=drop chain=forward comment="Drop Invalid Connections" connection-state=invalid disabled=no');
+                    lines.push('');
+                    lines.push('add action=accept chain=input comment="Accept Exempt IP Addresses" disabled=no src-address-list="Exempt Addresses"');
+                    lines.push('add action=accept chain=forward comment="Accept Exempt IP Addresses" disabled=no src-address-list="Exempt Addresses"');
+                    lines.push('');
+                    lines.push('add action=drop chain=input comment="Drop anyone in the Black List (Manually Added)" disabled=no src-address-list="Black List"');
+                    lines.push('add action=drop chain=forward comment="Drop anyone in the Black List (Manually Added)" disabled=no src-address-list="Black List"');
+                    lines.push('add action=drop chain=input comment="Drop anyone in the Black List (SSH)" disabled=no src-address-list="Black List (SSH)"');
+                    lines.push('add action=drop chain=forward comment="Drop anyone in the Black List (SSH)" disabled=no src-address-list="Black List (SSH)"');
+                    lines.push('add action=drop chain=input comment="Drop anyone in the Black List (Telnet)" disabled=no src-address-list="Black List (Telnet)"');
+                    lines.push('add action=drop chain=forward comment="Drop anyone in the Black List (Telnet)" disabled=no src-address-list="Black List (Telnet)"');
+                    lines.push('add action=drop chain=input comment="Drop anyone in the Black List (Winbox)" disabled=no src-address-list="Black List (Winbox)"');
+                    lines.push('add action=drop chain=forward comment="Drop anyone in the Black List (Winbox)" disabled=no src-address-list="Black List (Winbox)"');
+                    lines.push('add action=drop chain=input comment="Drop anyone in the Port Scanner List" disabled=yes src-address-list="WAN Port Scanners"');
+                    lines.push('add action=drop chain=forward comment="Drop anyone in the Port Scanner List" disabled=yes src-address-list="WAN Port Scanners"');
+                    lines.push('add action=drop chain=input comment="Drop anyone in the Port Scanner List" disabled=yes src-address-list="LAN Port Scanners"');
+                    lines.push('add action=drop chain=forward comment="Drop anyone in the Port Scanner List" disabled=yes src-address-list="LAN Port Scanners"');
+                    lines.push('add action=drop chain=forward comment="Drop anyone in the Black List (High Connections)" disabled=yes src-address-list="(High Connection Rates)"');
+                    lines.push('add action=drop chain=input comment="Drop all Bogons" disabled=yes src-address-list=Bogons');
+                    lines.push('add action=drop chain=forward comment="Drop all Bogons" disabled=yes src-address-list=Bogons');
+                    lines.push('add action=drop chain=forward comment="Drop all P2P" disabled=yes p2p=all-p2p');
+                    lines.push('add chain=output comment="Section Break" disabled=yes');
+                    lines.push('');
+                    lines.push('###########################################################################################################################');
+                    lines.push('#### Detect & Block Brute Force Login Attempts                                                                         ####');
+                    lines.push('###########################################################################################################################');
+                    lines.push('add action=jump chain=input comment="Jump to RWF SSH Chain" disabled=no jump-target="RWF SSH Chain"');
+                    lines.push('add action=add-src-to-address-list address-list="Black List (SSH)" address-list-timeout=0s chain="RWF SSH Chain" comment="Transfer repeated attempts from SSH Stage 3 to Black-List" connection-state=new disabled=no dst-port=22 protocol=tcp src-address-list="SSH Stage 3"');
+                    lines.push('add action=add-src-to-address-list address-list="SSH Stage 3" address-list-timeout=1m chain="RWF SSH Chain" comment="Add succesive attempts to SSH Stage 3" connection-state=new disabled=no dst-port=22 protocol=tcp src-address-list="SSH Stage 2"');
+                    lines.push('add action=add-src-to-address-list address-list="SSH Stage 2" address-list-timeout=1m chain="RWF SSH Chain" comment="Add succesive attempts to SSH Stage 2" connection-state=new disabled=no dst-port=22 protocol=tcp src-address-list="SSH Stage 1"');
+                    lines.push('add action=add-src-to-address-list address-list="SSH Stage 1" address-list-timeout=1m chain="RWF SSH Chain" comment="Add intial attempt to SSH Stage 1 List" connection-state=new disabled=no dst-port=22 protocol=tcp');
+                    lines.push('add action=log chain="RWF SSH Chain" comment="Log Black Listed IPs" disabled=no log-prefix="SSH Black List - " src-address-list="Black List (SSH)"');
+                    lines.push('add action=return chain="RWF SSH Chain" comment="Return From RWF SSH Chain" disabled=no');
+                    lines.push('add chain=output comment="Section Break" disabled=yes');
+                    lines.push('');
+                    lines.push('add action=jump chain=input comment="Jump to RWF Telnet Chain" disabled=no jump-target="RWF Telnet Chain"');
+                    lines.push('add action=add-src-to-address-list address-list="Black List (Telnet)" address-list-timeout=0s chain="RWF Telnet Chain" comment="Transfer repeated attempts from Telnet Stage 3 to Black-List" connection-state=new disabled=no dst-port=23 protocol=tcp src-address-list="Telnet Stage 3"');
+                    lines.push('add action=add-src-to-address-list address-list="Telnet Stage 3" address-list-timeout=1m chain="RWF Telnet Chain" comment="Add succesive attempts to Telnet Stage 3" connection-state=new disabled=no dst-port=23 protocol=tcp src-address-list="Telnet Stage 2"');
+                    lines.push('add action=add-src-to-address-list address-list="Telnet Stage 2" address-list-timeout=1m chain="RWF Telnet Chain" comment="Add succesive attempts to Telnet Stage 2" connection-state=new disabled=no dst-port=23 protocol=tcp src-address-list="Telnet Stage 1"');
+                    lines.push('add action=add-src-to-address-list address-list="Telnet Stage 1" address-list-timeout=1m chain="RWF Telnet Chain" comment="Add Intial attempt to Telnet Stage 1" connection-state=new disabled=no dst-port=23 protocol=tcp');
+                    lines.push('add action=log chain="RWF Telnet Chain" comment="Log Black Listed IPs" disabled=no log-prefix="Telnet Black List - " src-address-list="Black List (Telnet)"');
+                    lines.push('add action=return chain="RWF Telnet Chain" comment="Return From RWF Telnet Chain" disabled=no');
+                    lines.push('add chain=output comment="Section Break" disabled=yes');
+                    lines.push('');
+                    lines.push('add action=jump chain=input comment="Jump to RWF Winbox Chain" disabled=no jump-target="RWF Winbox Chain"');
+                    lines.push('add action=add-src-to-address-list address-list="Black List (Winbox)" address-list-timeout=0s chain="RWF Winbox Chain" comment="Transfer repeated attempts from Winbox Stage 3 to Black-List" connection-state=new disabled=no dst-port=8291 protocol=tcp src-address-list="Winbox Stage 3"');
+                    lines.push('add action=add-src-to-address-list address-list="Winbox Stage 3" address-list-timeout=1m chain="RWF Winbox Chain" comment="Add succesive attempts to Winbox Stage 3" connection-state=new disabled=no dst-port=8291 protocol=tcp src-address-list="Winbox Stage 2"');
+                    lines.push('add action=add-src-to-address-list address-list="Winbox Stage 2" address-list-timeout=1m chain="RWF Winbox Chain" comment="Add succesive attempts to Winbox Stage 2" connection-state=new disabled=no dst-port=8291 protocol=tcp src-address-list="Winbox Stage 1"');
+                    lines.push('add action=add-src-to-address-list address-list="Winbox Stage 1" address-list-timeout=1m chain="RWF Winbox Chain" comment="Add Intial attempt to Winbox Stage 1" connection-state=new disabled=no dst-port=8291 protocol=tcp');
+                    lines.push('add action=log chain="RWF Winbox Chain" comment="Log Black Listed IPs" disabled=no log-prefix="Winbox Black List - " src-address-list="Black List (Winbox)"');
+                    lines.push('add action=return chain="RWF Winbox Chain" comment="Return From RWF Winbox Chain" disabled=no');
+                    lines.push('add chain=output comment="Section Break" disabled=yes');
+                    lines.push('');
+                    lines.push('###########################################################################################################################');
+                    lines.push('#### Detect & Manage Port Scanners                                                                                     ####');
+                    lines.push('###########################################################################################################################');
+                    lines.push('add action=jump chain=input comment="Jump to RWF WAN Port Scanners" disabled=no jump-target="RWF WAN Port Scanners"');
+                    lines.push('add action=add-src-to-address-list address-list="Wan Port Scanners" address-list-timeout=0s chain="RWF WAN Port Scanners" comment="Add TCP Port Scanners to Address List" disabled=no protocol=tcp psd=40,3s,2,1');
+                    lines.push('add action=log chain="RWF WAN Port Scanners" comment="Log Black Listed IPs" disabled=no log-prefix="WAN Port Scanners - " src-address-list="Wan Port Scanners"');
+                    lines.push('add action=return chain="RWF WAN Port Scanners" comment="Return From RWF WAN Port Scanners" disabled=no');
+                    lines.push('add chain=output comment="Section Break" disabled=yes');
+                    lines.push('');
+                    lines.push('add action=jump chain=forward comment="Jump to RWF LAN Port Scanners" disabled=no jump-target="RWF LAN Port Scanners"');
+                    lines.push('add action=add-src-to-address-list address-list="RWF LAN Port Scanners" address-list-timeout=0s chain="RWF LAN Port Scanners" comment="Add TCP Port Scanners to Address List" disabled=no protocol=tcp psd=40,3s,2,1');
+                    lines.push('add action=log chain="RWF LAN Port Scanners" comment="Log Black Listed IPs" disabled=no log-prefix="LAN Port Scanners - " src-address-list="LAN Port Scanners"');
+                    lines.push('add action=return chain="RWF LAN Port Scanners" comment="Return From RWF LAN Port Scanners" disabled=no');
+                    lines.push('add chain=output comment="Section Break" disabled=yes');
+                    lines.push('');
+                    lines.push('###########################################################################################################################');
+                    lines.push('#### Detect & Manage High Connection Rates                                                                             ####');
+                    lines.push('###########################################################################################################################');
+                    lines.push('add action=jump chain=forward comment="Jump to High Connection Limiting Chain" jump-target="RWF Conn Limit Chain (LAN)"');
+                    lines.push('add action=add-src-to-address-list address-list="(LAN High Connection Rates)" chain="RWF Conn Limit Chain (LAN)" comment="Add LAN High Connections to Address List" connection-limit=100,32 protocol=tcp');
+                    lines.push('add action=log chain="RWF Conn Limit Chain (LAN)" comment="Log Black Listed IPs" log-prefix="LAN High Conn Limit - " src-address-list="(LAN High Connection Rates)"');
+                    lines.push('add action=return chain="RWF Conn Limit Chain (LAN)" comment="Return From High Connection Limit Chain"');
+                    lines.push('add action=jump chain=input comment="Jump to High Connection Limiting Chain" jump-target="RWF Conn Limit Chain (WAN)"');
+                    lines.push('add action=add-src-to-address-list address-list="(WAN High Connection Rates)" chain="RWF Conn Limit Chain (WAN)" comment="Add WAN High Connections to Address List" connection-limit=100,32 protocol=tcp');
+                    lines.push('add action=log chain="RWF Conn Limit Chain (WAN)" comment="Log Black Listed IPs" disabled=yes log-prefix="WAN High Conn Limit - " src-address-list="(WAN High Connection Rates)"');
+                    lines.push('add action=return chain="RWF Conn Limit Chain (WAN)" comment="Return From High Connection Limit Chain"');
+                    lines.push('');
+                    lines.push('###########################################################################################################################');
+                    lines.push('#### Virus Chain (basic AV filtering)                                                                                  ####');
+                    lines.push('###########################################################################################################################');
+                    lines.push('add action=jump chain=input comment="Jump to Virus Chain" disabled=no jump-target=Virus');
+                    lines.push('add action=drop chain=Virus comment="Drop Blaster Worm" disabled=no dst-port=135-139 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop Blaster Worm" disabled=no dst-port=445 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop Blaster Worm" disabled=no dst-port=445 protocol=udp');
+                    lines.push('add action=drop chain=Virus comment="Drop Messenger Worm" disabled=no dst-port=135-139 protocol=udp');
+                    lines.push('add action=drop chain=Virus comment=Conficker disabled=no dst-port=593 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment=Worm disabled=no dst-port=1024-1030 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="ndm requester" disabled=no dst-port=1363 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="ndm server" disabled=no dst-port=1364 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="screen cast" disabled=no dst-port=1368 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment=hromgrafx disabled=no dst-port=1373 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop MyDoom" disabled=no dst-port=1080 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment=cichlid disabled=no dst-port=1377 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment=Worm disabled=no dst-port=1433-1434 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop Dumaru.Y" disabled=no dst-port=2283 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop Beagle" disabled=no dst-port=2535 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop Beagle.C-K" disabled=no dst-port=2745 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop MyDoom" disabled=no dst-port=3127-3128 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop Backdoor OptixPro" disabled=no dst-port=3410 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop Sasser" disabled=no dst-port=5554 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment=Worm disabled=no dst-port=4444 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment=Worm disabled=no dst-port=4444 protocol=udp');
+                    lines.push('add action=drop chain=Virus comment="Drop Beagle.B" disabled=no dst-port=8866 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop Dabber.A-B" disabled=no dst-port=9898 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop Dumaru.Y" disabled=no dst-port=10000 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop MyDoom.B" disabled=no dst-port=10080 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop NetBus" disabled=no dst-port=12345 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop Kuang2" disabled=no dst-port=17300 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop SubSeven" disabled=no dst-port=27374 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop PhatBot, Agobot, Gaobot" disabled=no dst-port=65506 protocol=tcp');
+                    lines.push('add action=return chain=Virus comment="Return From Virus Chain" disabled=no');
+                    lines.push('add chain=output comment="Section Break" disabled=yes');
+                    lines.push('');
+                    lines.push('###########################################################################################################################');
+                    lines.push('#### Bogons list (disabled by default in upstream script)                                                              ####');
+                    lines.push('###########################################################################################################################');
+                    lines.push('/ip firewall address-list');
+                    lines.push('add list= Bogons address=0.0.0.0/8 disabled=yes');
+                    lines.push('add list= Bogons address=10.0.0.0/8 disabled=yes');
+                    lines.push('add list= Bogons address=100.64.0.0/10 disabled=yes');
+                    lines.push('add list= Bogons address=127.0.0.0/8 disabled=yes');
+                    lines.push('add list= Bogons address=169.254.0.0/16 disabled=yes');
+                    lines.push('add list= Bogons address=172.16.0.0/12 disabled=yes');
+                    lines.push('add list= Bogons address=192.0.0.0/24 disabled=yes');
+                    lines.push('add list= Bogons address=192.0.2.0/24 disabled=yes');
+                    lines.push('add list= Bogons address=192.168.0.0/16 disabled=yes');
+                    lines.push('add list= Bogons address=198.18.0.0/15 disabled=yes');
+                    lines.push('add list= Bogons address=198.51.100.0/24 disabled=yes');
+                    lines.push('add list= Bogons address=203.0.113.0/24 disabled=yes');
+                    lines.push('add list= Bogons address=224.0.0.0/4 disabled=yes');
+                    lines.push('add list= Bogons address=240.0.0.0/4 disabled=yes');
+                    lines.push('');
+                    if (this.form.includeCommonPorts) {
+                        lines.push('###########################################################################################################################');
+                        lines.push('#### Common Ports (VERY LONG)                                                                                          ####');
+                        lines.push('###########################################################################################################################');
+                        lines.push('# (Truncated: this section is intentionally large in the upstream script. Review before enabling.)');
+                        lines.push('/ip firewall filter');
+                        lines.push('add action=jump chain=forward comment="Jump to \\"Manage Common Ports\\" Chain" jump-target="Manage Common Ports"');
+                        lines.push('# ... (common ports entries omitted here on purpose for readability) ...');
+                    }
+                    lines.push('');
+                    lines.push('/ip service');
+                    lines.push('set telnet disabled=no port=23');
+                    lines.push('set ftp disabled=yes port=21');
+                    lines.push('set www disabled=no port=80');
+                    lines.push('set ssh disabled=no port=22');
+                    lines.push('set www-ssl certificate=none disabled=yes port=443');
+                    lines.push('set api disabled=yes port=8728');
+                    lines.push('set winbox disabled=no port=8291');
+                    lines.push('');
+                    lines.push('/ip firewall service-port');
+                    lines.push('set ftp disabled=no ports=21');
+                    lines.push('set tftp disabled=no ports=69');
+                    lines.push('set irc disabled=no ports=6667');
+                    lines.push('set h323 disabled=no');
+                    lines.push('set sip disabled=no ports=5060,5061');
+                    lines.push('set pptp disabled=no');
+                    lines.push('');
+                    lines.push('# End of Rick Frey (Free) snippet');
+                    return lines.join('\n');
+                },
+                genRickFrey5Script() {
+                    // Rick Frey's Basic MikroTik Firewall Rev 5.0 (Free Version) — user-provided snippet.
+                    const lines = [];
+                    lines.push('#########################################################################################################');
+                    lines.push('#  Rick Frey\'s Basic MikroTik Firewall Rev 5.0 (Free Version)                                           #');
+                    lines.push('#########################################################################################################');
+                    lines.push('# Author: Rick Frey                                                                                     #');
+                    lines.push('# email: support@rickfreyconsulting.com                                                                 #');
+                    lines.push('# Username in MikroTik Forum is rickfrey                                                                #');
+                    lines.push('#########################################################################################################');
+                    lines.push('# License: Free for public use. May not be sold.                                                        #');
+                    lines.push('#########################################################################################################');
+                    lines.push('');
+                    lines.push('###########################################################################################################################');
+                    lines.push('#### Firewall Settings                                                                                                 ####');
+                    lines.push('###########################################################################################################################');
+                    lines.push('/ip firewall connection tracking');
+                    lines.push('set enabled=yes');
+                    lines.push('');
+                    lines.push('###########################################################################################################################');
+                    lines.push('#### Must Add Admin IP Addresses in the Address List for Administering the Network in "Exempt Addresses"              ####');
+                    lines.push('###########################################################################################################################');
+                    lines.push('/ip firewall address-list');
+                    const ex = this.exemptNetworks.length ? this.exemptNetworks : [(this.form.remoteAccessNet || '192.168.88.0/24').trim() || '192.168.88.0/24'];
+                    for (const n of ex) lines.push('add list="Exempt Addresses" address=' + n + ' disabled=no');
+                    lines.push('');
+                    lines.push('###########################################################################################################################');
+                    lines.push('#### Drop Invalid Connections                                                                                          ####');
+                    lines.push('###########################################################################################################################');
+                    lines.push('/ip firewall filter');
+                    lines.push('add action=drop chain=input comment="Drop Invalid Connections" connection-state=invalid disabled=no');
+                    lines.push('add action=drop chain=forward comment="Drop Invalid Connections" connection-state=invalid disabled=no');
+                    lines.push('');
+                    lines.push('add action=accept chain=input comment="Accept Exempt IP Addresses" disabled=no src-address-list="Exempt Addresses"');
+                    lines.push('add action=accept chain=forward comment="Accept Exempt IP Addresses" disabled=no src-address-list="Exempt Addresses"');
+                    lines.push('');
+                    lines.push('add action=drop chain=input comment="Drop anyone in the Black List (Manually Added)" disabled=no src-address-list="Black List"');
+                    lines.push('add action=drop chain=forward comment="Drop anyone in the Black List (Manually Added)" disabled=no src-address-list="Black List"');
+                    lines.push('add action=drop chain=input comment="Drop anyone in the Black List (SSH)" disabled=no src-address-list="Black List (SSH)"');
+                    lines.push('add action=drop chain=forward comment="Drop anyone in the Black List (SSH)" disabled=no src-address-list="Black List (SSH)"');
+                    lines.push('add action=drop chain=input comment="Drop anyone in the Black List (Telnet)" disabled=no src-address-list="Black List (Telnet)"');
+                    lines.push('add action=drop chain=forward comment="Drop anyone in the Black List (Telnet)" disabled=no src-address-list="Black List (Telnet)"');
+                    lines.push('add action=drop chain=input comment="Drop anyone in the Black List (Winbox)" disabled=no src-address-list="Black List (Winbox)"');
+                    lines.push('add action=drop chain=forward comment="Drop anyone in the Black List (Winbox)" disabled=no src-address-list="Black List (Winbox)"');
+                    lines.push('add action=drop chain=input comment="Drop anyone in the WAN Port Scanner List" disabled=yes src-address-list="WAN Port Scanners"');
+                    lines.push('add action=drop chain=forward comment="Drop anyone in the WAN Port Scanner List" disabled=yes src-address-list="WAN Port Scanners"');
+                    lines.push('add action=drop chain=input comment="Drop anyone in the LAN Port Scanner List" disabled=yes src-address-list="LAN Port Scanners"');
+                    lines.push('add action=drop chain=forward comment="Drop anyone in the LAN Port Scanner List" disabled=yes src-address-list="LAN Port Scanners"');
+                    lines.push('add action=drop chain=input comment="Drop all Bogons" disabled=no src-address-list=Bogons');
+                    lines.push('add action=drop chain=forward comment="Drop all Bogons" disabled=no src-address-list=Bogons');
+                    lines.push('add action=drop chain=forward comment="Drop all P2P" disabled=yes p2p=all-p2p');
+                    lines.push('add chain=output comment="Section Break" disabled=yes');
+                    lines.push('');
+                    lines.push('###########################################################################################################################');
+                    lines.push('#### Detect & Block Brute Force Login Attempts                                                                         ####');
+                    lines.push('###########################################################################################################################');
+                    lines.push('add action=jump chain=input comment="Jump to RFC SSH Chain" disabled=no jump-target="RFC SSH Chain"');
+                    lines.push('add action=add-src-to-address-list address-list="Black List (SSH)" address-list-timeout=0s chain="RFC SSH Chain" comment="Transfer repeated attempts from SSH Stage 3 to Black-List" connection-state=new disabled=no dst-port=22 protocol=tcp src-address-list="SSH Stage 3"');
+                    lines.push('add action=add-src-to-address-list address-list="SSH Stage 3" address-list-timeout=1m chain="RFC SSH Chain" comment="Add succesive attempts to SSH Stage 3" connection-state=new disabled=no dst-port=22 protocol=tcp src-address-list="SSH Stage 2"');
+                    lines.push('add action=add-src-to-address-list address-list="SSH Stage 2" address-list-timeout=1m chain="RFC SSH Chain" comment="Add succesive attempts to SSH Stage 2" connection-state=new disabled=no dst-port=22 protocol=tcp src-address-list="SSH Stage 1"');
+                    lines.push('add action=add-src-to-address-list address-list="SSH Stage 1" address-list-timeout=1m chain="RFC SSH Chain" comment="Add intial attempt to SSH Stage 1 List" connection-state=new disabled=no dst-port=22 protocol=tcp');
+                    lines.push('add action=return chain="RFC SSH Chain" comment="Return From RFC SSH Chain" disabled=no');
+                    lines.push('add chain=output comment="Section Break" disabled=yes');
+                    lines.push('');
+                    lines.push('add action=jump chain=input comment="Jump to RFC Telnet Chain" disabled=no jump-target="RFC Telnet Chain"');
+                    lines.push('add action=add-src-to-address-list address-list="Black List (Telnet)" address-list-timeout=0s chain="RFC Telnet Chain" comment="Transfer repeated attempts from Telnet Stage 3 to Black-List" connection-state=new disabled=no dst-port=23 protocol=tcp src-address-list="Telnet Stage 3"');
+                    lines.push('add action=add-src-to-address-list address-list="Telnet Stage 3" address-list-timeout=1m chain="RFC Telnet Chain" comment="Add succesive attempts to Telnet Stage 3" connection-state=new disabled=no dst-port=23 protocol=tcp src-address-list="Telnet Stage 2"');
+                    lines.push('add action=add-src-to-address-list address-list="Telnet Stage 2" address-list-timeout=1m chain="RFC Telnet Chain" comment="Add succesive attempts to Telnet Stage 2" connection-state=new disabled=no dst-port=23 protocol=tcp src-address-list="Telnet Stage 1"');
+                    lines.push('add action=add-src-to-address-list address-list="Telnet Stage 1" address-list-timeout=1m chain="RFC Telnet Chain" comment="Add Intial attempt to Telnet Stage 1" connection-state=new disabled=no dst-port=23 protocol=tcp');
+                    lines.push('add action=return chain="RFC Telnet Chain" comment="Return From RFC Telnet Chain" disabled=no');
+                    lines.push('add chain=output comment="Section Break" disabled=yes');
+                    lines.push('');
+                    lines.push('add action=jump chain=input comment="Jump to RFC Winbox Chain" disabled=no jump-target="RFC Winbox Chain"');
+                    lines.push('add action=add-src-to-address-list address-list="Black List (Winbox)" address-list-timeout=0s chain="RFC Winbox Chain" comment="Transfer repeated attempts from Winbox Stage 3 to Black-List" connection-state=new disabled=no dst-port=8291 protocol=tcp src-address-list="Winbox Stage 3"');
+                    lines.push('add action=add-src-to-address-list address-list="Winbox Stage 3" address-list-timeout=1m chain="RFC Winbox Chain" comment="Add succesive attempts to Winbox Stage 3" connection-state=new disabled=no dst-port=8291 protocol=tcp src-address-list="Winbox Stage 2"');
+                    lines.push('add action=add-src-to-address-list address-list="Winbox Stage 2" address-list-timeout=1m chain="RFC Winbox Chain" comment="Add succesive attempts to Winbox Stage 2" connection-state=new disabled=no dst-port=8291 protocol=tcp src-address-list="Winbox Stage 1"');
+                    lines.push('add action=add-src-to-address-list address-list="Winbox Stage 1" address-list-timeout=1m chain="RFC Winbox Chain" comment="Add Intial attempt to Winbox Stage 1" connection-state=new disabled=no dst-port=8291 protocol=tcp');
+                    lines.push('add action=return chain="RFC Winbox Chain" comment="Return From RFC Winbox Chain" disabled=no');
+                    lines.push('add chain=output comment="Section Break" disabled=yes');
+                    lines.push('');
+                    lines.push('###########################################################################################################################');
+                    lines.push('#### Detect & Manage Port Scanners                                                                                     ####');
+                    lines.push('###########################################################################################################################');
+                    lines.push('/ip firewall filter');
+                    lines.push('add action=add-src-to-address-list address-list="Wan Port Scanners" chain=input comment="Add TCP Port Scanners to Address List" protocol=tcp psd=40,3s,2,1');
+                    lines.push('add action=add-src-to-address-list address-list="LAN Port Scanners" chain=forward comment="Add TCP Port Scanners to Address List" protocol=tcp psd=40,3s,2,1');
+                    lines.push('add chain=output comment="Section Break" disabled=yes');
+                    lines.push('');
+                    lines.push('###########################################################################################################################');
+                    lines.push('#### Detect & Manage High Connection Rates                                                                             ####');
+                    lines.push('###########################################################################################################################');
+                    lines.push('/ip firewall filter');
+                    lines.push('add action=add-src-to-address-list address-list="(WAN High Connection Rates)" chain=input comment="Add WAN High Connections to Address List" connection-limit=100,32 protocol=tcp');
+                    lines.push('add action=add-src-to-address-list address-list="(LAN High Connection Rates)" chain=forward comment="Add LAN High Connections to Address List" connection-limit=100,32 protocol=tcp');
+                    lines.push('');
+                    lines.push('###########################################################################################################################');
+                    lines.push('#### Virus Chain (basic AV filtering)                                                                                  ####');
+                    lines.push('###########################################################################################################################');
+                    lines.push('add action=jump chain=input comment="Jump to Virus Chain" disabled=no jump-target=Virus');
+                    lines.push('add action=drop chain=Virus comment="Drop Blaster Worm" disabled=no dst-port=135-139 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop Blaster Worm" disabled=no dst-port=445 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop Blaster Worm" disabled=no dst-port=445 protocol=udp');
+                    lines.push('add action=drop chain=Virus comment="Drop Messenger Worm" disabled=no dst-port=135-139 protocol=udp');
+                    lines.push('add action=drop chain=Virus comment=Conficker disabled=no dst-port=593 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment=Worm disabled=no dst-port=1024-1030 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="ndm requester" disabled=no dst-port=1363 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="ndm server" disabled=no dst-port=1364 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="screen cast" disabled=no dst-port=1368 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment=hromgrafx disabled=no dst-port=1373 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop MyDoom" disabled=no dst-port=1080 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment=cichlid disabled=no dst-port=1377 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment=Worm disabled=no dst-port=1433-1434 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop Dumaru.Y" disabled=no dst-port=2283 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop Beagle" disabled=no dst-port=2535 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop Beagle.C-K" disabled=no dst-port=2745 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop MyDoom" disabled=no dst-port=3127-3128 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop Backdoor OptixPro" disabled=no dst-port=3410 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop Sasser" disabled=no dst-port=5554 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment=Worm disabled=no dst-port=4444 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment=Worm disabled=no dst-port=4444 protocol=udp');
+                    lines.push('add action=drop chain=Virus comment="Drop Beagle.B" disabled=no dst-port=8866 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop Dabber.A-B" disabled=no dst-port=9898 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop Dumaru.Y" disabled=no dst-port=10000 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop MyDoom.B" disabled=no dst-port=10080 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop NetBus" disabled=no dst-port=12345 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop Kuang2" disabled=no dst-port=17300 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop SubSeven" disabled=no dst-port=27374 protocol=tcp');
+                    lines.push('add action=drop chain=Virus comment="Drop PhatBot, Agobot, Gaobot" disabled=no dst-port=65506 protocol=tcp');
+                    lines.push('add action=return chain=Virus comment="Return From Virus Chain" disabled=no');
+                    lines.push('add chain=output comment="Section Break" disabled=yes');
+                    lines.push('');
+                    lines.push('###########################################################################################################################');
+                    lines.push('#### Bogons short list                                                                                                 ####');
+                    lines.push('###########################################################################################################################');
+                    lines.push('/ip firewall address-list');
+                    lines.push('add address=0.0.0.0/8 comment="RFC 1122 \\"This host on this network\\"" disabled=yes list=Bogons');
+                    lines.push('add address=10.0.0.0/8 comment="RFC 1918 (Private Use IP Space)" disabled=yes list=Bogons');
+                    lines.push('add address=100.64.0.0/10 comment="RFC 6598 (Shared Address Space)" disabled=yes list=Bogons');
+                    lines.push('add address=127.0.0.0/8 comment="RFC 1122 (Loopback)" disabled=yes list=Bogons');
+                    lines.push('add address=169.254.0.0/16 comment="RFC 3927 (Dynamic Configuration of IPv4 Link-Local Addresses)" disabled=yes list=Bogons');
+                    lines.push('add address=172.16.0.0/12 comment="RFC 1918 (Private Use IP Space)" disabled=yes list=Bogons');
+                    lines.push('add address=192.0.0.0/24 comment="RFC 6890 (IETF Protocol Assingments)" disabled=yes list=Bogons');
+                    lines.push('add address=192.0.2.0/24 comment="RFC 5737 (Test-Net-1)" disabled=yes list=Bogons');
+                    lines.push('add address=192.168.0.0/16 comment="RFC 1918 (Private Use IP Space)" disabled=yes list=Bogons');
+                    lines.push('add address=198.18.0.0/15 comment="RFC 2544 (Benchmarking)" disabled=yes list=Bogons');
+                    lines.push('add address=198.51.100.0/24 comment="RFC 5737 (Test-Net-2)" disabled=yes list=Bogons');
+                    lines.push('add address=203.0.113.0/24 comment="RFC 5737 (Test-Net-3)" disabled=yes list=Bogons');
+                    lines.push('add address=224.0.0.0/4 comment="RFC 5771 (Multicast Addresses) - Will affect routing protocols. Use with caution.)" disabled=yes list=Bogons');
+                    lines.push('add address=240.0.0.0/4 comment="RFC 1112 (Reserved)" disabled=yes list=Bogons');
+                    lines.push('add address=192.31.196.0/24 comment="RFC 7535 (AS112-v4)" disabled=yes list=Bogons');
+                    lines.push('add address=192.52.193.0/24 comment="RFC 7450 (AMT)" disabled=yes list=Bogons');
+                    lines.push('add address=192.88.99.0/24 comment="RFC 7526 (Deprecated (6to4 Relay Anycast))" disabled=yes list=Bogons');
+                    lines.push('add address=192.175.48.0/24 comment="RFC 7534 (Direct Delegation AS112 Service)" disabled=yes list=Bogons');
+                    lines.push('add address=255.255.255.255 comment="RFC 919 (Limited Broadcast)" disabled=yes list=Bogons');
+                    lines.push('');
+                    if (this.form.includeCommonPorts) {
+                        lines.push('###########################################################################################################################');
+                        lines.push('#### Manage Common Ports                                                                                               ####');
+                        lines.push('###########################################################################################################################');
+                        lines.push('/ip firewall filter');
+                        lines.push('add action=jump chain=forward comment="Jump to \\"Manage Common Ports\\" Chain" jump-target="Manage Common Ports"');
+                        lines.push('add chain="Manage Common Ports" comment="\\"All hosts on this subnet\\" Broadcast" src-address=224.0.0.1');
+                        lines.push('add chain="Manage Common Ports" comment="\\"All routers on this subnet\\" Broadcast" src-address=224.0.0.2');
+                        lines.push('add chain="Manage Common Ports" comment="DVMRP (Distance Vector Multicast Routing Protocol)" src-address=224.0.0.4');
+                        lines.push('add chain="Manage Common Ports" comment="OSPF - All OSPF Routers Broadcast" src-address=224.0.0.5');
+                        lines.push('add chain="Manage Common Ports" comment="OSPF - OSPF DR Routers Broadcast" src-address=224.0.0.6');
+                        lines.push('add chain="Manage Common Ports" comment="RIP Broadcast" src-address=224.0.0.9');
+                        lines.push('add chain="Manage Common Ports" comment="EIGRP Broadcast" src-address=224.0.0.10');
+                        lines.push('add chain="Manage Common Ports" comment="PIM Broadcast" src-address=224.0.0.13');
+                        lines.push('add chain="Manage Common Ports" comment="VRRP Broadcast" src-address=224.0.0.18');
+                        lines.push('add chain="Manage Common Ports" comment="IS-IS Broadcast" src-address=224.0.0.19');
+                        lines.push('add chain="Manage Common Ports" comment="IS-IS Broadcast" src-address=224.0.0.20');
+                        lines.push('add chain="Manage Common Ports" comment="IS-IS Broadcast" src-address=224.0.0.21');
+                        lines.push('add chain="Manage Common Ports" comment="IGMP Broadcast" src-address=224.0.0.22');
+                        lines.push('add chain="Manage Common Ports" comment="GRE Protocol (Local Management)" protocol=gre');
+                        lines.push('add chain="Manage Common Ports" comment="Secure Shell(SSH)" port=22 protocol=tcp');
+                        lines.push('add chain="Manage Common Ports" comment="Telnet" port=23 protocol=tcp');
+                        lines.push('add chain="Manage Common Ports" comment="Domain Name System (DNS)" port=53 protocol=udp');
+                        lines.push('add chain="Manage Common Ports" comment="Hypertext Transfer Protocol (HTTP)" port=80 protocol=tcp');
+                        lines.push('add chain="Manage Common Ports" comment="Network Time Protocol(NTP)" port=123 protocol=udp');
+                        lines.push('add chain="Manage Common Ports" comment="Microsoft-DSActive Directory, Windows shares" port=445 protocol=tcp');
+                        lines.push('add chain="Manage Common Ports" comment="L2TP/ IPSEC UDP Port 500 (Local Management)" port=500 protocol=udp');
+                        lines.push('add chain="Manage Common Ports" comment="Syslog - used for system logging" port=514 protocol=udp');
+                        lines.push('add chain="Manage Common Ports" comment="e-mail message submission (SMTP)" port=587 protocol=tcp');
+                        lines.push('add chain="Manage Common Ports" comment="OVPN TCP Port 1194 (Local Management)" port=1194 protocol=tcp');
+                        lines.push('add chain="Manage Common Ports" comment="PPTP Port 1723 (Local Management)" port=1723 protocol=tcp');
+                        lines.push('add chain="Manage Common Ports" comment="L2TP UDP Port 1701 (Local Management)" port=1701 protocol=udp');
+                        lines.push('add chain="Manage Common Ports" comment="L2TP UDP Port 4500 (Local Management)" port=4500 protocol=udp');
+                        lines.push('');
+                    }
+                    lines.push('/ip firewall filter');
+                    lines.push('add chain=input comment="Accept Related or Established Connections" connection-state=established,related disabled=yes');
+                    lines.push('add chain=forward comment="Accept New Connections" connection-state=new disabled=yes');
+                    lines.push('add chain=forward comment="Accept Related or Established Connections" connection-state=established,related disabled=yes');
+                    lines.push('');
+                    lines.push('add action=drop chain=forward comment="Drop all other LAN Traffic" disabled=yes');
+                    lines.push('add action=drop chain=input comment="Drop all other WAN Traffic" disabled=yes');
+                    lines.push('');
+                    lines.push('/ip service');
+                    lines.push('set telnet address="" disabled=yes port=23');
+                    lines.push('set ftp address="" disabled=yes port=21');
+                    lines.push('set www address="" disabled=no port=80');
+                    lines.push('set ssh address="" disabled=no port=25');
+                    lines.push('set www-ssl address="" certificate=none disabled=yes port=443');
+                    lines.push('set api address="" disabled=yes port=8728');
+                    lines.push('set winbox address="" disabled=no port=8291');
+                    lines.push('set api-ssl address="" certificate=none disabled=yes port=8729');
+                    lines.push('');
+                    lines.push('# End of Rick Frey Rev 5.0 (Free) snippet');
+                    return lines.join('\n');
+                },
+                genRickFrey6Script() {
+                    // Rick Frey's Basic MikroTik Firewall Rev 6.0 for IPv4 (Free Version) — user-provided snippet (partial).
+                    // This generator preserves attribution and provides a starter block; review the upstream script before use.
+                    const lines = [];
+                    lines.push('#########################################################################################################');
+                    lines.push('#  Rick Frey\'s Basic MikroTik Firewall Rev 6.0 for IPv4 (Free Version)                                  #');
+                    lines.push('#########################################################################################################');
+                    lines.push('# Author: Rick Frey                                                                                     #');
+                    lines.push('# email: rickfrey1000@gmail.com                                                                         #');
+                    lines.push('# Username in MikroTik Forum is rickfrey                                                                #');
+                    lines.push('#########################################################################################################');
+                    lines.push('# License: This script has been created for use by the general public and may be used freely.          #');
+                    lines.push('#########################################################################################################');
+                    lines.push('# NOTE: Generated from a user-provided excerpt. Review & test in Safe Mode.                            #');
+                    lines.push('#########################################################################################################');
+                    lines.push('');
+                    lines.push('/ip settings');
+                    lines.push('set rp-filter=strict secure-redirects=no send-redirects=no tcp-syncookies=yes');
+                    lines.push('');
+                    lines.push('/interface list');
+                    lines.push('add name="WAN Interfaces"');
+                    lines.push('add name="LAN Interfaces"');
+                    lines.push('');
+                    lines.push('# Add your interfaces to these lists:');
+                    lines.push('# /interface list member add interface=<wan> list="WAN Interfaces"');
+                    lines.push('# /interface list member add interface=<lan> list="LAN Interfaces"');
+                    lines.push('');
+                    lines.push('/system script');
+                    lines.push('# Joshaven Potter blacklists (SpamHaus/dshield/malc0de/voip-bl)');
+                    lines.push('# The upstream script adds fetch+import scripts and a scheduler. If you want them, paste the full Rev 6.0 script.');
+                    lines.push('');
+                    lines.push('/ip firewall address-list');
+                    lines.push('# Bogons + LAN + DNS Servers + URL whitelist/blacklist — excerpt below (edit to your environment)');
+                    lines.push('add address=0.0.0.0/8 comment="RFC 1122 \\"This host on this network\\"" list=Bogons');
+                    lines.push('add address=10.0.0.0/8 comment="RFC 1918 (Private Use IP Space)" list=Bogons');
+                    lines.push('add address=100.64.0.0/10 comment="RFC 6598 (Shared Address Space)" list=Bogons');
+                    lines.push('add address=127.0.0.0/8 comment="RFC 1122 (Loopback)" list=Bogons');
+                    lines.push('add address=169.254.0.0/16 comment="RFC 3927 (Dynamic Configuration of IPv4 Link-Local Addresses)" list=Bogons');
+                    lines.push('add address=172.16.0.0/12 comment="RFC 1918 (Private Use IP Space)" list=Bogons');
+                    lines.push('add address=192.0.0.0/24 comment="RFC 6890 (IETF Protocol Assingments)" list=Bogons');
+                    lines.push('add address=192.0.2.0/24 comment="RFC 5737 (Test-Net-1)" list=Bogons');
+                    lines.push('add address=192.168.0.0/16 comment="RFC 1918 (Private Use IP Space)" disabled=yes list=Bogons');
+                    lines.push('add address=198.18.0.0/15 comment="RFC 2544 (Benchmarking)" list=Bogons');
+                    lines.push('add address=198.51.100.0/24 comment="RFC 5737 (Test-Net-2)" list=Bogons');
+                    lines.push('add address=203.0.113.0/24 comment="RFC 5737 (Test-Net-3)" list=Bogons');
+                    lines.push('add address=224.0.0.0/4 comment="RFC 5771 (Multicast Addresses) - Use with caution.)" disabled=yes list=Bogons');
+                    lines.push('add address=240.0.0.0/4 comment="RFC 1112 (Reserved)" list=Bogons');
+                    lines.push('add address=192.31.196.0/24 comment="RFC 7535 (AS112-v4)" list=Bogons');
+                    lines.push('add address=192.52.193.0/24 comment="RFC 7450 (AMT)" list=Bogons');
+                    lines.push('add address=192.88.99.0/24 comment="RFC 7526 (Deprecated (6to4 Relay Anycast))" list=Bogons');
+                    lines.push('add address=192.175.48.0/24 comment="RFC 7534 (Direct Delegation AS112 Service)" list=Bogons');
+                    lines.push('add address=255.255.255.255 comment="RFC 919 (Limited Broadcast)" disabled=yes list=Bogons');
+                    lines.push('');
+                    lines.push('# LAN address-list (adjust to your real LAN ranges)');
+                    lines.push('add address=10.0.0.0/8 list=LAN');
+                    lines.push('add address=172.16.0.0/12 list=LAN');
+                    lines.push('add address=192.168.0.0/16 list=LAN');
+                    lines.push('');
+                    lines.push('# DNS Servers list (edit to your resolver choices)');
+                    lines.push('add address=1.1.1.1 comment=Cloudflare list="DNS Servers"');
+                    lines.push('add address=1.0.0.1 comment=Cloudflare list="DNS Servers"');
+                    lines.push('add address=8.8.8.8 comment=Google list="DNS Servers"');
+                    lines.push('add address=8.8.4.4 comment=Google list="DNS Servers"');
+                    lines.push('');
+                    lines.push('# URL allow/deny lists (FQDN support depends on RouterOS features; keep as reference)');
+                    lines.push('add address=www.mikrotik.com list="Whitelisted URLs"');
+                    lines.push('add address=www.rickfreyconsulting.com list="Whitelisted URLs"');
+                    lines.push('add address=www.joshaven.com list="Whitelisted URLs"');
+                    lines.push('add address=core.zeroday.ltd list="Blacklisted URLs"');
+                    lines.push('');
+                    lines.push('/ip firewall filter');
+                    lines.push('add action=accept chain=input comment="Accept Exempt IP Addresses - bypass firewall (use with caution)" src-address-list="Exempt Addresses"');
+                    lines.push('add action=accept chain=forward comment="Accept Exempt IP Addresses - bypass firewall (use with caution)" src-address-list="Exempt Addresses"');
+                    lines.push('add action=accept chain=input comment="Accept Whitelisted URLs" src-address-list="Whitelisted URLs"');
+                    lines.push('add action=accept chain=forward comment="Accept Whitelisted URLs" src-address-list="Whitelisted URLs"');
+                    lines.push('add action=accept chain=forward comment="Accept Whitelisted URLs" dst-address-list="Whitelisted URLs"');
+                    lines.push('add action=accept chain=output comment="Section Break" disabled=yes');
+                    lines.push('');
+                    lines.push('# (The full Rev 6.0 script is very long: port-scan chains, DNS_DDoS chain, brute-force chains, ICMP protection, service protection, logging, and more.)');
+                    lines.push('# Paste the full upstream script if you want all features exactly as designed by Rick Frey.');
+                    lines.push('');
+                    lines.push('/system logging action');
+                    lines.push('set 1 disk-file-count=1 disk-lines-per-file=10000');
+                    lines.push('add email-to=youremail@gmail.com name=email target=email');
+                    lines.push('/system logging');
+                    lines.push('set 0 action=disk');
+                    lines.push('set 1 action=disk');
+                    lines.push('set 2 action=disk');
+                    lines.push('add action=email disabled=yes prefix="FW-Invalid Connections"');
+                    lines.push('add action=email disabled=yes prefix=FW-Bogons');
+                    lines.push('add action=email disabled=yes prefix="FW-Drop All Other Traffic"');
+                    lines.push('add action=email disabled=yes prefix="RFC Port Scans"');
+                    return lines.join('\n');
+                },
+                genRickFrey61Script() {
+                    // Rick Frey’s Basic MikroTik Firewall Rev 6.1 for IPv4 (Free Version) — user-provided excerpt.
+                    // This generator preserves attribution and provides an excerpted starter; paste full upstream script for complete coverage.
+                    const lines = [];
+                    lines.push('#########################################################################################################');
+                    lines.push('# Rick Frey\\u2019s Basic MikroTik Firewall Rev 6.1 for IPv4 (Free Version)                                  #');
+                    lines.push('#########################################################################################################');
+                    lines.push('# Author: Rick Frey                                                                                     #');
+                    lines.push('# email: rickfrey1000@gmail.com                                                                         #');
+                    lines.push('# Username in MikroTik Forum is rickfrey                                                                #');
+                    lines.push('#########################################################################################################');
+                    lines.push('# License: This script has been created for use by the general public and may be used freely.          #');
+                    lines.push('#########################################################################################################');
+                    lines.push('# NOTE: Generated from a user-provided excerpt. Review & test in Safe Mode.                            #');
+                    lines.push('#########################################################################################################');
+                    lines.push('');
+                    lines.push('# Setup: assign your interfaces to "WAN Interfaces" and "LAN Interfaces" interface lists.');
+                    lines.push('');
+                    lines.push('/ip settings');
+                    lines.push('set rp-filter=strict secure-redirects=no send-redirects=no tcp-syncookies=yes');
+                    lines.push('');
+                    lines.push('/interface list');
+                    lines.push('add name="WAN Interfaces"');
+                    lines.push('add name="LAN Interfaces"');
+                    lines.push('');
+                    lines.push('# /interface list member add interface=<wan> list="WAN Interfaces"');
+                    lines.push('# /interface list member add interface=<lan> list="LAN Interfaces"');
+                    lines.push('');
+                    lines.push('# Blacklist download/import scripts + scheduler exist in the upstream Rev 6.1 script (Joshaven Potter lists).');
+                    lines.push('# If your router is small, consider disabling those parts.');
+                    lines.push('');
+                    lines.push('/ip firewall connection tracking');
+                    lines.push('set enabled=yes loose-tcp-tracking=no');
+                    lines.push('');
+                    lines.push('/ip firewall address-list');
+                    lines.push('add address=192.168.0.0/16 list="LAN Subnets"');
+                    lines.push('add address=1.1.1.1 comment=Cloudflare list="DNS Servers"');
+                    lines.push('add address=1.0.0.1 comment=Cloudflare list="DNS Servers"');
+                    lines.push('add address=8.8.8.8 comment=Google list="DNS Servers"');
+                    lines.push('add address=8.8.4.4 comment=Google list="DNS Servers"');
+                    lines.push('add address=www.mikrotik.com list="Whitelisted URLs"');
+                    lines.push('add address=www.joshaven.com list="Whitelisted URLs"');
+                    lines.push('add address=core.zeroday.ltd list="Blacklisted URLs"');
+                    lines.push('');
+                    lines.push('# Exempt Addresses (add your admin subnets here; default includes loopback)');
+                    lines.push('add address=127.0.0.1 list="Exempt Addresses"');
+                    const ex = this.exemptNetworks.length ? this.exemptNetworks : [];
+                    for (const n of ex) lines.push('add address=' + n + ' list="Exempt Addresses"');
+                    lines.push('');
+                    lines.push('/ip firewall filter');
+                    lines.push('add action=accept chain=input comment="Accept Exempt IP Addresses" src-address-list="Exempt Addresses"');
+                    lines.push('add action=accept chain=forward comment="Accept Exempt IP Addresses" src-address-list="Exempt Addresses"');
+                    lines.push('add action=accept chain=input comment="Accept Whitelisted URLs" src-address-list="Whitelisted URLs"');
+                    lines.push('add action=accept chain=forward comment="Accept Whitelisted URLs" src-address-list="Whitelisted URLs"');
+                    lines.push('add action=accept chain=forward comment="Accept Whitelisted URLs" dst-address-list="Whitelisted URLs"');
+                    lines.push('add action=accept chain=output comment="Section Break" disabled=yes');
+                    lines.push('');
+                    lines.push('# (Excerpt) DNS_DDoS chain, brute-force chains, port-scan detection, ICMP protection, unusual protocol drops, etc. are in the full script.');
+                    lines.push('');
+                    lines.push('/ip firewall nat');
+                    lines.push('# Example from Rev 6.1 excerpt: transparently proxy DNS (edit Pi-hole IP / LAN subnets)');
+                    lines.push('# add action=accept chain=dstnat comment="Accept Pi-Hole Server Traffic" port=53 protocol=udp src-address=192.168.50.13');
+                    lines.push('add action=redirect chain=dstnat comment="Transparently proxy all DNS traffic" dst-port=53 protocol=udp src-address-list="LAN Subnets" to-ports=53');
+                    lines.push('');
+                    lines.push('/ip firewall raw');
+                    lines.push('# Raw chain is used in Rev 6.1 for early drop + port-scan logic. Paste full Rev 6.1 for complete rules.');
+                    lines.push('add action=accept chain=prerouting comment="Accept Exempt IP Addresses" src-address-list="Exempt Addresses"');
+                    lines.push('add action=accept chain=prerouting comment="Accept Whitelisted URLs" src-address-list="Whitelisted URLs"');
+                    lines.push('add action=accept chain=prerouting comment="Accept Whitelisted URLs" dst-address-list="Whitelisted URLs"');
+                    lines.push('add action=accept chain=output comment="Section Break" disabled=yes');
+                    lines.push('');
+                    lines.push('# End of Rick Frey Rev 6.1 (Free) excerpt');
+                    return lines.join('\n');
+                },
+                genRickFrey61LiteScript() {
+                    // Rick Frey’s Basic MikroTik Firewall Rev 6.1 for IPv4 – Lite Edition (Free Version) — user-provided excerpt.
+                    const lines = [];
+                    lines.push('#########################################################################################################');
+                    lines.push('# Rick Frey\\u2019s Basic MikroTik Firewall Rev 6.1 for IPv4 \\u2013 Lite Edition (Free Version)                  #');
+                    lines.push('#########################################################################################################');
+                    lines.push('# Author: Rick Frey                                                                                     #');
+                    lines.push('# email: rickfrey1000@gmail.com                                                                         #');
+                    lines.push('# Username in MikroTik Forum is rickfrey                                                                #');
+                    lines.push('#########################################################################################################');
+                    lines.push('# License: This script has been created for use by the general public and may be used freely.          #');
+                    lines.push('#########################################################################################################');
+                    lines.push('# NOTE: Generated from a user-provided excerpt. Review & test in Safe Mode.                            #');
+                    lines.push('#########################################################################################################');
+                    lines.push('');
+                    lines.push('# Setup: add interfaces into "WAN Interfaces" and "LAN Interfaces".');
+                    lines.push('');
+                    lines.push('/ip settings');
+                    lines.push('set rp-filter=strict secure-redirects=no send-redirects=no tcp-syncookies=yes');
+                    lines.push('');
+                    lines.push('/interface list');
+                    lines.push('add name="WAN Interfaces"');
+                    lines.push('add name="LAN Interfaces"');
+                    lines.push('');
+                    lines.push('# /interface list member add interface=<wan> list="WAN Interfaces"');
+                    lines.push('# /interface list member add interface=<lan> list="LAN Interfaces"');
+                    lines.push('');
+                    lines.push('/ip firewall address-list');
+                    lines.push('add address=192.168.0.0/16 list="LAN Subnets"');
+                    lines.push('# Bogons list (review and disable/remove entries that match your environment)');
+                    lines.push('add address=0.0.0.0/8 comment="RFC 1122 \\"This host on this network\\"" list=Bogons disabled=yes');
+                    lines.push('add address=10.0.0.0/8 comment="RFC 1918 (Private Use IP Space)" list=Bogons disabled=yes');
+                    lines.push('add address=100.64.0.0/10 comment="RFC 6598 (Shared Address Space)" list=Bogons disabled=yes');
+                    lines.push('add address=127.0.0.0/8 comment="RFC 1122 (Loopback)" list=Bogons disabled=yes');
+                    lines.push('add address=169.254.0.0/16 comment="RFC 3927 (IPv4 Link-Local)" list=Bogons disabled=yes');
+                    lines.push('add address=172.16.0.0/12 comment="RFC 1918 (Private Use IP Space)" list=Bogons disabled=yes');
+                    lines.push('add address=192.0.0.0/24 comment="RFC 6890 (IETF Protocol Assignments)" list=Bogons disabled=yes');
+                    lines.push('add address=192.0.2.0/24 comment="RFC 5737 (Test-Net-1)" list=Bogons disabled=yes');
+                    lines.push('add address=192.168.0.0/16 comment="RFC 1918 (Private Use IP Space)" list=Bogons disabled=yes');
+                    lines.push('add address=198.18.0.0/15 comment="RFC 2544 (Benchmarking)" list=Bogons disabled=yes');
+                    lines.push('add address=198.51.100.0/24 comment="RFC 5737 (Test-Net-2)" list=Bogons disabled=yes');
+                    lines.push('add address=203.0.113.0/24 comment="RFC 5737 (Test-Net-3)" list=Bogons disabled=yes');
+                    lines.push('add address=240.0.0.0/4 comment="RFC 1112 (Reserved)" list=Bogons disabled=yes');
+                    lines.push('');
+                    lines.push('# LAN list (adjust)');
+                    lines.push('add address=10.0.0.0/8 list=LAN');
+                    lines.push('add address=172.16.0.0/12 list=LAN');
+                    lines.push('add address=192.168.0.0/16 list=LAN');
+                    lines.push('');
+                    lines.push('# DNS Servers (edit)');
+                    lines.push('add address=1.1.1.1 comment=Cloudflare list="DNS Servers"');
+                    lines.push('add address=1.0.0.1 comment=Cloudflare list="DNS Servers"');
+                    lines.push('add address=8.8.8.8 comment=Google list="DNS Servers"');
+                    lines.push('add address=8.8.4.4 comment=Google list="DNS Servers"');
+                    lines.push('');
+                    lines.push('# URL allow/deny (reference)');
+                    lines.push('add address=www.mikrotik.com list="Whitelisted URLs"');
+                    lines.push('add address=www.rickfreyconsulting.com list="Whitelisted URLs"');
+                    lines.push('add address=www.joshaven.com list="Whitelisted URLs"');
+                    lines.push('add address=core.zeroday.ltd list="Blacklisted URLs"');
+                    lines.push('');
+                    lines.push('# Exempt Addresses');
+                    lines.push('add address=127.0.0.1 list="Exempt Addresses"');
+                    const ex = this.exemptNetworks.length ? this.exemptNetworks : [];
+                    for (const n of ex) lines.push('add address=' + n + ' list="Exempt Addresses"');
+                    lines.push('');
+                    lines.push('/ip firewall connection tracking');
+                    lines.push('set enabled=yes loose-tcp-tracking=no');
+                    lines.push('');
+                    lines.push('/ip firewall filter');
+                    lines.push('add action=accept chain=input comment="Accept Exempt IP Addresses" src-address-list="Exempt Addresses"');
+                    lines.push('add action=accept chain=forward comment="Accept Exempt IP Addresses" src-address-list="Exempt Addresses"');
+                    lines.push('add action=accept chain=input comment="Accept Whitelisted URLs" src-address-list="Whitelisted URLs"');
+                    lines.push('add action=accept chain=forward comment="Accept Whitelisted URLs" src-address-list="Whitelisted URLs"');
+                    lines.push('add action=accept chain=forward comment="Accept Whitelisted URLs" dst-address-list="Whitelisted URLs"');
+                    lines.push('add action=accept chain=output comment="Section Break" disabled=yes');
+                    lines.push('');
+                    lines.push('# DNS_DDoS + brute-force stages + drop invalid + high connection detection are part of the full Lite script excerpt you provided.');
+                    lines.push('# Paste the full upstream Lite script if you want every chain/rule exactly as authored by Rick Frey.');
+                    lines.push('');
+                    lines.push('/ip firewall nat');
+                    lines.push('# Transparently proxy DNS traffic (edit Pi-hole IP if you use the accept exception)');
+                    lines.push('# add action=accept chain=dstnat comment="Accept Pi-Hole Server Traffic" port=53 protocol=udp src-address=192.168.50.13');
+                    lines.push('add action=redirect chain=dstnat comment="Transparently proxy all DNS traffic" dst-port=53 protocol=udp src-address-list="LAN Subnets" to-ports=53');
+                    lines.push('');
+                    lines.push('/ip firewall raw');
+                    lines.push('add action=accept chain=prerouting comment="Accept Exempt IP Addresses" src-address-list="Exempt Addresses"');
+                    lines.push('add action=accept chain=prerouting comment="Accept Whitelisted URLs" src-address-list="Whitelisted URLs"');
+                    lines.push('add action=accept chain=prerouting comment="Accept Whitelisted URLs" dst-address-list="Whitelisted URLs"');
+                    lines.push('add action=accept chain=output comment="Section Break" disabled=yes');
+                    lines.push('');
+                    lines.push('# End of Rick Frey Rev 6.1 Lite (Free) excerpt');
+                    return lines.join('\n');
+                },
+                copyText(id) {
+                    const el = document.getElementById(id);
+                    const txt = el ? el.innerText : '';
+                    navigator.clipboard.writeText(txt);
+                    this.showToast = true;
+                    setTimeout(() => { this.showToast = false; }, 2500);
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
+

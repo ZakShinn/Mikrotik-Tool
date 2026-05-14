@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <script>(function(){try{var k=localStorage.getItem('mikrotik-theme');var d=false;if(k==='dark')d=true;else if(k!=='light'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)d=true;if(d)document.documentElement.classList.add('theme-dark');}catch(e){}})();</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>MikroTik WireGuard — Tạo VPN, script RouterOS, QR &amp; .conf | Zakshin</title>
+    <meta name="description" content="Tạo cấu hình WireGuard cho MikroTik RouterOS: script Terminal, peer, file .conf, mã QR, ZIP. Miễn phí — khóa chỉ xử lý trên trình duyệt của bạn.">
+    <meta name="keywords" content="MikroTik, WireGuard, RouterOS VPN, MT-WG Gen, QR WireGuard, Zakshin">
+    <meta name="author" content="Nghĩa Zakshin">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="https://mikrotik.hainghia.net/wireguard">
+    <link rel="alternate" hreflang="vi" href="https://mikrotik.hainghia.net/wireguard">
+    <link rel="alternate" hreflang="en" href="https://mikrotik.hainghia.net/wireguard">
+    <link rel="alternate" hreflang="x-default" href="https://mikrotik.hainghia.net/wireguard">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="../sitemap.xml">
+    <link rel="icon" type="image/png" href="../Logo.png">
+    <link rel="apple-touch-icon" href="../Logo.png">
+    <link rel="manifest" href="../site.webmanifest">
+    <meta name="theme-color" content="#f5f7fa">
+    <meta name="format-detection" content="telephone=no">
+
+    <meta property="og:site_name" content="MikroTik Tools — Zakshin">
+    <meta property="og:title" content="MikroTik WireGuard — Generator cho RouterOS | Zakshin">
+    <meta property="og:description" content="Sinh script MikroTik, peer, .conf và QR cho WireGuard VPN — client-side.">
+    <meta property="og:url" content="https://mikrotik.hainghia.net/wireguard">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:image" content="https://mikrotik.hainghia.net/Logo.png">
+    <meta property="og:image:alt" content="MikroTik WireGuard Generator">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="MikroTik WireGuard Generator | Zakshin">
+    <meta name="twitter:description" content="Script RouterOS, .conf, QR — miễn phí.">
+    <meta name="twitter:image" content="https://mikrotik.hainghia.net/Logo.png">
+
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@graph":[
+      {"@type":"WebApplication","name":"MikroTik WireGuard Generator (MT-WG Gen)","url":"https://mikrotik.hainghia.net/wireguard","applicationCategory":"NetworkingApplication","operatingSystem":"Web Browser","browserRequirements":"Requires JavaScript. Modern browser recommended.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"Nghĩa Zakshin","url":"https://github.com/ZakShinn"},"description":"Công cụ tạo cấu hình WireGuard cho MikroTik: script, peer, .conf, mã QR."},
+      {"@type":"BreadcrumbList","itemListElement":[
+        {"@type":"ListItem","position":1,"name":"Trang chủ","item":"https://mikrotik.hainghia.net/"},
+        {"@type":"ListItem","position":2,"name":"WireGuard","item":"https://mikrotik.hainghia.net/wireguard"}
+      ]}
+    ]}
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../assets/site.css">
+    <script src="../assets/theme-ui.js"></script>
+    <script src="../assets/lang-ui.js"></script>
+    <script type="application/json" id="seo-i18n-data">{"en":{"title":"MikroTik WireGuard — VPN, RouterOS scripts, QR & .conf | Zakshin","description":"Generate WireGuard for MikroTik RouterOS: Terminal script, peers, client .conf files, QR codes, ZIP. Free — keys stay in your browser.","keywords":"MikroTik, WireGuard, RouterOS VPN, MT-WG Gen, QR WireGuard, Zakshin","ogTitle":"MikroTik WireGuard — Generator for RouterOS | Zakshin","ogDesc":"Build MikroTik scripts, peers, .conf, and QR for WireGuard VPN — client-side.","twitterTitle":"MikroTik WireGuard Generator | Zakshin","twitterDesc":"RouterOS scripts, .conf, and QR — free, in your browser.","ogImageAlt":"MikroTik WireGuard Generator"}}</script>
+    <script src="../assets/seo-i18n.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="app-shell">
+    <div class="noise" aria-hidden="true"></div>
+    <div id="app" class="app-shell">
+        <div v-if="showToast" class="toast-msg">
+            <i class="fas fa-check-circle text-success mr-2"></i> {{ t.ui.copied }}
+        </div>
+
+        <nav class="tool-nav">
+            <div class="tool-nav-inner">
+                <div class="tool-nav-row">
+                    <div class="tool-nav-brand">
+                        <a href="/" class="btn btn-ghost btn-sm btn-icon" title="Trang chủ" aria-label="Trang chủ"><i class="fas fa-home"></i></a>
+                        <span class="tool-nav-logo" aria-hidden="true"><img src="../Logo.png" alt="" width="34" height="34" decoding="async"></span>
+                        <h1 class="tool-nav-title"><i class="fas fa-network-wired accent-icon"></i> MT-WG Gen</h1>
+                    </div>
+                    <div class="tool-nav-actions">
+                        <div class="wg-actions-stack">
+                            <button type="button" class="btn btn-ghost btn-sm btn-icon" @click="toggleTheme" :aria-label="theme === 'dark' ? t.ui.themeLight : t.ui.themeDark" :title="theme === 'dark' ? t.ui.themeLight : t.ui.themeDark">
+                                <i :class="theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="btn btn-ghost btn-sm" @click="toggleLang">
+                                <i class="fas fa-globe mr-1"></i> {{ lang === 'vi' ? 'English' : 'Tiếng Việt' }}
+                            </button>
+                            <button type="button" class="btn btn-primary-solid" @click="generate">
+                                <i class="fas fa-rocket mr-2"></i> {{ t.ui.btnGenerate }}
+                            </button>
+                            <template v-if="hasData">
+                                <button type="button" class="btn btn-link btn-sm" @click="downloadConfZip"><i class="fas fa-file-archive mr-2"></i> ZIP Configs</button>
+                                <button type="button" class="btn btn-link btn-sm" @click="downloadQrZip"><i class="fas fa-images mr-2"></i> ZIP QRs</button>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="tool-nav-meta">
+                        <div><strong>Nghĩa Zakshin</strong></div>
+                        <div class="tool-nav-meta-sub">MikroTik Tools</div>
+                        <div class="tool-nav-meta-sub"><i class="fas fa-circle-check mr-1"></i> {{ t.ui.testedOn }}</div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="tool-main">
+            <div class="layout-split layout-split-wg">
+                <section class="panel">
+                    <h2 class="section-title"><i class="fas fa-server mr-2"></i> {{ t.ui.serverConfig }}</h2>
+
+                    <div class="field" v-for="(v, k) in fieldMeta" :key="k">
+                        <label class="label">
+                            {{ t.labels[k] }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels[k] }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints[k].aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints[k].type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints[k].def }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control"><input class="input" v-model="form[k]"></div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.ui.serverPrivateKey }}
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.hints.pk }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control"><input class="input" v-model="serverKeys.privateKey"></div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">
+                            {{ t.ui.serverPublicKey }}
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.hints.pub }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control"><input class="input" v-model="serverKeys.publicKey" readonly style="opacity:0.85"></div>
+                    </div>
+
+                    <div class="wg-checkboxes">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="usePsk">
+                            <span class="checkbox-text">{{ t.ui.usePsk }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.hints.psk_tip }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="allowDns">
+                            <span class="checkbox-text">{{ t.ui.allowDns }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.hints.dns_tip }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="panel panel-script">
+                    <h2 class="section-title"><i class="fas fa-code mr-2"></i> {{ t.ui.scriptPanelTitle }}</h2>
+                    <div class="code-container">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:.5rem">
+                            <div style="font-weight:700; color:var(--text)"><i class="fas fa-terminal mr-2"></i> {{ form.interface }}</div>
+                            <button type="button" class="btn btn-dark btn-sm copy-btn" @click="copyText('main-script')"><i class="fas fa-copy mr-1"></i> {{ t.ui.copy }}</button>
+                        </div>
+                        <pre id="main-script" class="script-pre">{{ routerOsScript }}</pre>
+                    </div>
+                </section>
+            </div>
+
+            <div v-if="hasData">
+                <h2 class="client-section-title"><i class="fas fa-users mr-2"></i> {{ t.ui.clientManage }}</h2>
+                <div class="client-grid">
+                    <div class="client-card" v-for="(c, ip) in clients" :key="ip">
+                        <div class="client-header">
+                            <i class="fas fa-user-circle icon-muted" style="font-size:1.75rem"></i>
+                            <input class="input-plain" v-model="c.name">
+                            <div class="ip-badge">
+                                <i class="fas fa-network-wired mr-1"></i> {{ form.network }}.{{ ip }}
+                            </div>
+                        </div>
+                        <div class="client-body">
+                            <div class="client-inner">
+                                <div class="qr-section"><canvas :id="'canvas-' + ip"></canvas></div>
+                                <div class="code-container">
+                                    <button type="button" class="btn btn-dark btn-sm copy-btn" @click="copyText('peer-' + ip)"><i class="fas fa-copy"></i></button>
+                                    <pre :id="'peer-' + ip" class="script-pre script-pre-sm">[Interface]
+Address = {{ form.network }}.{{ ip }}/32
+PrivateKey = {{ c.privateKey }}
+DNS = {{ allowDns ? form.network + '.1' : form.dns }}
+
+[Peer]
+PublicKey = {{ serverKeys.publicKey }}
+{{ usePsk ? ('PresharedKey = ' + c.psk + '\n') : '' }}Endpoint = {{ form.server }}:{{ form.port }}
+AllowedIPs = {{ form.allowedIps }}
+PersistentKeepalive = 10</pre>
+                                </div>
+                            </div>
+                            <div class="btn-row">
+                                <button type="button" class="btn btn-success btn-sm btn-full" @click="downloadSingleConf(ip)"><i class="fas fa-file-download mr-2"></i> .CONF</button>
+                                <button type="button" class="btn btn-link btn-sm btn-full" @click="downloadSingleQR(ip)"><i class="fas fa-qrcode mr-2"></i> IMAGE</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bwip-js@3.0.4/dist/bwip-js-min.js"></script>
+    <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+
+    <script>
+        const { createApp } = Vue;
+        const genKey = () => btoa(Array.from(crypto.getRandomValues(new Uint8Array(32)), b => String.fromCharCode(b)).join('')).substring(0, 43) + '=';
+
+        const i18n = {
+            vi: {
+                labels: {
+                    server: 'Địa chỉ public / DDNS',
+                    port: 'Cổng UDP',
+                    interface: 'Tên interface WireGuard',
+                    dns: 'DNS trên file client',
+                    network: 'Dải IP VPN (.1 = router)',
+                    allowedIps: 'Lưu lượng qua tunnel',
+                    start: 'Octet IP client đầu tiên',
+                    count: 'Số client'
+                },
+                hints: {
+                    server: { aim: 'IP WAN hoặc tên miền trỏ về router — dùng làm Endpoint trong file .conf.', type: 'IP / hostname', def: 'vpn.nha-ban.com' },
+                    port: { aim: 'Cổng WireGuard; cần cho phép UDP trên firewall.', type: 'Số', def: '13333' },
+                    interface: { aim: 'Tên gọi interface trên MikroTik (vd wg-vpn).', type: 'Chữ', def: 'wg-vpn' },
+                    dns: { aim: 'Chỉ áp khi tắt “DNS qua router”. Khi bật DNS qua router, client dùng IP .1 của tunnel.', type: 'IPv4', def: '1.1.1.1' },
+                    network: { aim: 'Ba octet đầu của mạng /24; router luôn là octet .1.', type: 'A.B.C', def: '172.33.0' },
+                    allowedIps: { aim: '0.0.0.0/0 = chuyển toàn bộ traffic; có thể kẹp chỉ subnet nhà.', type: 'CIDR', def: '0.0.0.0/0' },
+                    start: { aim: 'Octet thứ tư của IP client đầu tiên (thường 2–254).', type: 'Số', def: '2' },
+                    count: { aim: 'Số peer/client sinh ra khi bấm “Tạo cấu hình”.', type: 'Số', def: '2' },
+                    pk: 'Tự sinh trong trình duyệt — không upload lên máy chủ. Sao chép và lưu nếu muốn giữ nguyên IP client giữa các lần quay lại trang.',
+                    pub: 'Phần hiển thị công khai; khớp với phần [Peer] trong file client.',
+                    psk_tip: 'Thêm một khóa đối xứng riêng cho từng client (WireGuard “preshared key”). Không bắt buộc nhưng khuyến nghị cho độ an toàn cao hơn.',
+                    dns_tip: 'Client nhận DNS là địa chỉ .1 trên tunnel; script router có thêm rule accept UDP/53 vào interface WireGuard để NAT/DNS hoạt động.'
+                },
+                ui: {
+                    tipDetails: 'Chi tiết',
+                    tipAim: 'Giải thích',
+                    tipType: 'Kiểu',
+                    tipDef: 'Ví dụ',
+                    btnGenerate: 'Tạo cấu hình',
+                    serverConfig: 'Phía VPN (router)',
+                    scriptPanelTitle: 'Script dán Terminal',
+                    serverPrivateKey: 'Khóa riêng server',
+                    serverPublicKey: 'Khóa công khai server',
+                    usePsk: 'PSK cho mỗi client',
+                    allowDns: 'Client dùng DNS qua router (.1)',
+                    copy: 'Copy script',
+                    clientManage: 'Danh sách client',
+                    copied: 'Đã sao chép!',
+                    testedOn: 'Đã test chuẩn trên RouterOS v7.22',
+                    themeDark: 'Giao diện tối',
+                    themeLight: 'Giao diện sáng'
+                }
+            },
+            en: {
+                labels: {
+                    server: 'Public IP / DDNS',
+                    port: 'UDP port',
+                    interface: 'WireGuard interface name',
+                    dns: 'DNS in client profile',
+                    network: 'VPN range (.1 = router)',
+                    allowedIps: 'Traffic via tunnel',
+                    start: 'First client last octet',
+                    count: 'How many clients'
+                },
+                hints: {
+                    server: { aim: 'WAN IP or hostname clients use as the WireGuard Endpoint.', type: 'IP / hostname', def: 'vpn.example.com' },
+                    port: { aim: 'Listening UDP port — open it on your edge firewall.', type: 'Number', def: '13333' },
+                    interface: { aim: 'Interface name on MikroTik (e.g. wg-vpn).', type: 'Text', def: 'wg-vpn' },
+                    dns: { aim: 'Used only when “DNS via router (.1)” is off; otherwise clients point at the tunnel gateway.', type: 'IPv4', def: '1.1.1.1' },
+                    network: { aim: 'First three octets of the /24 pool; the router always owns .1.', type: 'A.B.C', def: '172.33.0' },
+                    allowedIps: { aim: '0.0.0.0/0 routes everything; tighten if you only need LAN subnets.', type: 'CIDR', def: '0.0.0.0/0' },
+                    start: { aim: 'Fourth octet of the first generated peer (typically 2–254).', type: 'Number', def: '2' },
+                    count: { aim: 'How many peers are minted each time you click Generate.', type: 'Number', def: '2' },
+                    pk: 'Generated locally in your browser — nothing uploads to this site. Save it if you want stable addressing across visits.',
+                    pub: 'Derived from the private key and referenced inside each client profile.',
+                    psk_tip: 'Adds an optional WireGuard preshared key per peer for another symmetric layer.',
+                    dns_tip: 'Clients use x.x.x.1 as DNS; the router script opens UDP/53 toward the WireGuard interface so queries can be resolved locally.'
+                },
+                ui: {
+                    tipDetails: 'Details',
+                    tipAim: 'Explain',
+                    tipType: 'Type',
+                    tipDef: 'Example',
+                    btnGenerate: 'Generate configs',
+                    serverConfig: 'VPN (router) side',
+                    scriptPanelTitle: 'RouterOS paste script',
+                    serverPrivateKey: 'Server private key',
+                    serverPublicKey: 'Server public key',
+                    usePsk: 'PSK per client',
+                    allowDns: 'Clients use DNS via router (.1)',
+                    copy: 'Copy script',
+                    clientManage: 'Generated clients',
+                    copied: 'Copied!',
+                    testedOn: 'Tested on RouterOS v7.22',
+                    themeDark: 'Dark theme',
+                    themeLight: 'Light theme'
+                }
+            }
+        };
+
+        createApp({
+            data() {
+                return {
+                    lang: typeof MikrotikLang !== 'undefined' ? MikrotikLang.get() : 'vi', theme: typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light', usePsk: true, allowDns: true, showToast: false,
+                    form: { server: 'ddns.hainghia.net', port: 13333, interface: 'wg-vpn', dns: '1.1.1.1', network: '172.33.0', allowedIps: '0.0.0.0/0', start: 2, count: 2 },
+                    fieldMeta: { server: '', port: '', interface: '', dns: '', network: '', allowedIps: '', start: '', count: '' },
+                    clients: {}, serverKeys: { privateKey: genKey(), publicKey: genKey() }
+                };
+            },
+            watch: {
+                usePsk() { this.refreshQRs(); },
+                allowDns() { this.refreshQRs(); },
+                'form.allowedIps'() { this.refreshQRs(); },
+                'serverKeys.privateKey'() { this.serverKeys.publicKey = genKey(); this.refreshQRs(); }
+            },
+            computed: {
+                t() { return i18n[this.lang]; },
+                hasData() { return Object.keys(this.clients).length > 0; },
+                routerOsScript() {
+                    const f = this.form;
+                    const sk = this.serverKeys;
+                    const lines = [];
+                    lines.push(`/interface wireguard add listen-port=${f.port} mtu=1420 name=${f.interface} private-key="${sk.privateKey}"`);
+                    lines.push(`/ip firewall filter add action=accept chain=input comment="WireGuard: Allow Service Port" dst-port=${f.port} protocol=udp`);
+                    if (this.allowDns) {
+                        lines.push(`/ip firewall filter add action=accept chain=input comment="WireGuard: Allow DNS Access" dst-port=53 in-interface=${f.interface} protocol=udp`);
+                    }
+                    lines.push(`/ip address add address=${f.network}.1/24 interface=${f.interface} network=${f.network}.0`);
+                    lines.push('');
+                    lines.push('/interface wireguard peers');
+                    for (const ip of Object.keys(this.clients)) {
+                        const c = this.clients[ip];
+                        let peer = `add allowed-address=${f.network}.${ip}/32 comment="${c.name}" interface=${f.interface} public-key="${c.publicKey}"`;
+                        if (this.usePsk) peer += ` preshared-key="${c.psk}"`;
+                        lines.push(peer);
+                    }
+                    return lines.join('\n');
+                }
+            },
+            methods: {
+                toggleLang() {
+                    if (typeof MikrotikLang !== 'undefined') this.lang = MikrotikLang.toggle();
+                    else this.lang = this.lang === 'vi' ? 'en' : 'vi';
+                },
+                toggleTheme() {
+                    if (typeof MikrotikTheme !== 'undefined') MikrotikTheme.toggle();
+                    this.theme = typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light';
+                },
+                refreshQRs() { if (this.hasData) this.$nextTick(() => Object.keys(this.clients).forEach(ip => this.renderQR(ip))); },
+                generate() {
+                    const res = {};
+                    for (let i = 0; i < this.form.count; i++) {
+                        const ip = parseInt(this.form.start, 10) + i;
+                        res[ip] = { name: `Client_${ip}`, privateKey: genKey(), publicKey: genKey(), psk: genKey() };
+                    }
+                    this.clients = res;
+                    this.refreshQRs();
+                },
+                renderQR(ip) {
+                    const c = this.clients[ip];
+                    const dnsValue = this.allowDns ? `${this.form.network}.1` : this.form.dns;
+                    const pskLine = this.usePsk ? `PresharedKey=${c.psk}\n` : '';
+                    const text = `[Interface]\nAddress=${this.form.network}.${ip}/32\nPrivateKey=${c.privateKey}\nDNS=${dnsValue}\n\n[Peer]\nPublicKey=${this.serverKeys.publicKey}\n${pskLine}Endpoint=${this.form.server}:${this.form.port}\nAllowedIPs=${this.form.allowedIps}\nPersistentKeepalive=10`;
+                    bwipjs.toCanvas(`canvas-${ip}`, { bcid: 'qrcode', text: text, scale: 3, height: 50, width: 50, padding: 2, backgroundcolor: 'ffffff' });
+                },
+                copyText(id) {
+                    navigator.clipboard.writeText(document.getElementById(id).innerText);
+                    this.showToast = true;
+                    setTimeout(() => { this.showToast = false; }, 3000);
+                },
+                getClientConf(ip) {
+                    const c = this.clients[ip];
+                    const dnsValue = this.allowDns ? `${this.form.network}.1` : this.form.dns;
+                    return `[Interface]\nAddress=${this.form.network}.${ip}/32\nPrivateKey=${c.privateKey}\nDNS=${dnsValue}\n\n[Peer]\nPublicKey=${this.serverKeys.publicKey}\n${this.usePsk ? `PresharedKey=${c.psk}\n` : ''}Endpoint=${this.form.server}:${this.form.port}\nAllowedIPs=${this.form.allowedIps}\nPersistentKeepalive=10`;
+                },
+                downloadSingleConf(ip) { saveAs(new Blob([this.getClientConf(ip)], { type: 'text/plain' }), `${this.clients[ip].name}.conf`); },
+                downloadSingleQR(ip) { document.getElementById(`canvas-${ip}`).toBlob(b => saveAs(b, `${this.clients[ip].name}.png`)); },
+                downloadConfZip() {
+                    const zip = new JSZip();
+                    Object.keys(this.clients).forEach(ip => zip.file(`${this.clients[ip].name}.conf`, this.getClientConf(ip)));
+                    zip.generateAsync({ type: 'blob' }).then(b => saveAs(b, 'WG_Configs.zip'));
+                },
+                downloadQrZip() {
+                    const zip = new JSZip();
+                    const ps = Object.keys(this.clients).map(ip => new Promise(res => {
+                        document.getElementById(`canvas-${ip}`).toBlob(b => { zip.file(`${this.clients[ip].name}.png`, b); res(); });
+                    }));
+                    Promise.all(ps).then(() => zip.generateAsync({ type: 'blob' }).then(b => saveAs(b, 'WG_QRs.zip')));
+                }
+            },
+            mounted() {
+                const onTheme = (e) => { this.theme = e.detail.theme; };
+                window.addEventListener('mikrotik-theme-effective-change', onTheme);
+                this._offTheme = () => window.removeEventListener('mikrotik-theme-effective-change', onTheme);
+
+                const onLang = (e) => { this.lang = (e && e.detail && e.detail.lang) ? e.detail.lang : this.lang; };
+                window.addEventListener('mikrotik-lang-change', onLang);
+                this._offLang = () => window.removeEventListener('mikrotik-lang-change', onLang);
+            },
+            beforeUnmount() {
+                if (this._offTheme) this._offTheme();
+                if (this._offLang) this._offLang();
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

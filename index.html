@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <script>(function(){try{var k=localStorage.getItem('mikrotik-theme');var d=false;if(k==='dark')d=true;else if(k!=='light'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)d=true;if(d)document.documentElement.classList.add('theme-dark');}catch(e){}})();</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>MikroTik Tools — WireGuard, Hairpin NAT, DoH DNS, IPTV | Zakshin</title>
+    <meta name="description" content="Công cụ web miễn phí cho MikroTik RouterOS: WireGuard, Hairpin NAT, DoH DNS nhiều provider, IPTV (VLAN/IGMP). Script copy-paste, xử lý trên trình duyệt.">
+    <meta name="keywords" content="MikroTik, RouterOS, WireGuard, Hairpin NAT, DoH, NextDNS, Cloudflare, Google, AdGuard, OpenDNS, Quad9, IPTV, DNS over HTTPS, IGMP proxy, Zakshin">
+    <meta name="author" content="Nghĩa Zakshin">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="https://mikrotik.hainghia.net/">
+    <link rel="alternate" hreflang="vi" href="https://mikrotik.hainghia.net/">
+    <link rel="alternate" hreflang="en" href="https://mikrotik.hainghia.net/">
+    <link rel="alternate" hreflang="x-default" href="https://mikrotik.hainghia.net/">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="sitemap.xml">
+    <link rel="icon" type="image/png" href="Logo.png">
+    <link rel="apple-touch-icon" href="Logo.png">
+    <link rel="manifest" href="site.webmanifest">
+    <meta name="theme-color" content="#f5f7fa">
+    <meta name="format-detection" content="telephone=no">
+
+    <meta property="og:site_name" content="MikroTik Tools — Zakshin">
+    <meta property="og:title" content="MikroTik Tools — Công cụ web cho RouterOS | Zakshin">
+    <meta property="og:description" content="WireGuard, Hairpin NAT, DoH DNS, IPTV cho MikroTik — script sẵn, miễn phí, client-side.">
+    <meta property="og:url" content="https://mikrotik.hainghia.net/">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:image" content="https://mikrotik.hainghia.net/Logo.png">
+    <meta property="og:image:secure_url" content="https://mikrotik.hainghia.net/Logo.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="427">
+    <meta property="og:image:height" content="427">
+    <meta property="og:image:alt" content="MikroTik Tools — Zakshin">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="MikroTik Tools — Công cụ web RouterOS | Zakshin">
+    <meta name="twitter:description" content="Bốn công cụ MikroTik: VPN, NAT, DNS, IPTV — script copy-paste.">
+    <meta name="twitter:image" content="https://mikrotik.hainghia.net/Logo.png">
+    <meta name="twitter:image:alt" content="MikroTik Tools — Zakshin">
+
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@graph":[
+      {"@type":"WebSite","@id":"https://mikrotik.hainghia.net/#website","url":"https://mikrotik.hainghia.net/","name":"MikroTik Tools — Zakshin","description":"Công cụ web cho MikroTik RouterOS: WireGuard, Hairpin NAT, DoH DNS, IPTV.","inLanguage":["vi-VN","en-US"],"publisher":{"@id":"https://mikrotik.hainghia.net/#org"}},
+      {"@type":"Organization","@id":"https://mikrotik.hainghia.net/#org","name":"Zakshin","url":"https://mikrotik.hainghia.net/"},
+      {"@type":"ItemList","name":"Công cụ MikroTik","itemListElement":[
+        {"@type":"ListItem","position":1,"name":"WireGuard (MT-WG Gen)","item":"https://mikrotik.hainghia.net/wireguard"},
+        {"@type":"ListItem","position":2,"name":"Hairpin NAT","item":"https://mikrotik.hainghia.net/hairpin-nat"},
+        {"@type":"ListItem","position":3,"name":"DoH DNS","item":"https://mikrotik.hainghia.net/doh"},
+        {"@type":"ListItem","position":4,"name":"IPTV","item":"https://mikrotik.hainghia.net/iptv"},
+        {"@type":"ListItem","position":5,"name":"Firewall (gợi ý)","item":"https://mikrotik.hainghia.net/firewall"},
+        {"@type":"ListItem","position":6,"name":"Cloudflare DDNS","item":"https://mikrotik.hainghia.net/cloudflare-ddns"},
+        {"@type":"ListItem","position":7,"name":"Chặn mạng xã hội","item":"https://mikrotik.hainghia.net/social-block"},
+        {"@type":"ListItem","position":8,"name":"Định tuyến (Policy Routing)","item":"https://mikrotik.hainghia.net/routing"},
+        {"@type":"ListItem","position":9,"name":"Cheat PPPoE (Premium)","item":"https://mikrotik.hainghia.net/cheat-pppoe"}
+      ]}
+    ]}
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="assets/site.css">
+    <script src="assets/theme-ui.js"></script>
+    <script src="assets/lang-ui.js"></script>
+    <script type="application/json" id="seo-i18n-data">{"en":{"title":"MikroTik Tools — WireGuard, Hairpin NAT, DoH DNS, IPTV | Zakshin","description":"Free in-browser tools for MikroTik RouterOS: WireGuard, Hairpin NAT, DoH DNS (multiple providers), IPTV (VLAN/IGMP). Copy-paste scripts — all processing runs client-side in your browser.","keywords":"MikroTik, RouterOS, WireGuard, Hairpin NAT, DoH, NextDNS, Cloudflare, Google, AdGuard, OpenDNS, Quad9, IPTV, DNS over HTTPS, IGMP proxy, Zakshin","ogTitle":"MikroTik Tools — Web generators for RouterOS | Zakshin","ogDesc":"WireGuard, Hairpin NAT, DoH DNS, IPTV — free copy-paste RouterOS scripts in your browser.","twitterTitle":"MikroTik Tools — RouterOS utilities in your browser | Zakshin","twitterDesc":"VPN, NAT, DNS, and IPTV script generators — copy into MikroTik Terminal.","ogImageAlt":"MikroTik Tools — Zakshin"}}</script>
+    <script src="assets/seo-i18n.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="app-shell">
+    <div class="noise" aria-hidden="true"></div>
+    <div id="app" class="wrap">
+        <header class="site-header">
+            <a href="/" class="brand">
+                <span class="brand-mark"><img src="Logo.png" alt="" width="40" height="40" decoding="async"></span>
+                <span>
+                    <span class="brand-text">Zakshin</span><br>
+                    <span class="brand-sub">MikroTik Tools</span>
+                </span>
+            </a>
+            <div class="header-actions" :class="{ 'is-mobile-open': isNarrow && menuOpen }">
+                <button type="button" class="burger" @click="menuOpen = !menuOpen" aria-label="Menu" v-show="isNarrow">
+                    <i :class="menuOpen ? 'fas fa-times' : 'fas fa-bars'"></i>
+                </button>
+                <div class="nav-extra" v-show="!isNarrow || menuOpen">
+                    <a class="btn btn-ghost" href="#tools"><i class="fas fa-layer-group"></i> {{ t.nav.tools }}</a>
+                    <a class="btn btn-ghost" href="https://status.hainghia.net" target="_blank" rel="noopener">{{ t.nav.status }}</a>
+                    <a class="btn btn-ghost" href="https://github.com/ZakShinn" target="_blank" rel="noopener"><i class="fab fa-github"></i> GitHub</a>
+                    <button type="button" class="btn btn-ghost btn-icon" @click="toggleTheme" :aria-label="theme === 'dark' ? t.nav.themeLight : t.nav.themeDark" :title="theme === 'dark' ? t.nav.themeLight : t.nav.themeDark">
+                        <i :class="theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="btn btn-accent" @click="toggleLang"><i class="fas fa-globe"></i> {{ lang === 'vi' ? 'EN' : 'VI' }}</button>
+                    <a class="btn btn-accent" href="#donate"><i class="fas fa-heart"></i> {{ t.nav.donate }}</a>
+                </div>
+            </div>
+        </header>
+
+        <main id="main-content">
+        <section class="hero" aria-labelledby="home-title">
+            <div class="hero-badge"><i class="fas fa-screwdriver-wrench"></i> {{ t.badge }}</div>
+            <h1 id="home-title">{{ t.hero.title }}</h1>
+            <p>{{ t.hero.subtitle }}</p>
+        </section>
+
+        <section id="tools" class="tools-grid">
+            <article class="tool-card">
+                <div class="tool-card-header">
+                    <div class="tool-icon wg"><i class="fas fa-user-shield"></i></div>
+                    <div>
+                        <h2>{{ t.tools.wg.title }}</h2>
+                        <p class="sub">{{ t.tools.wg.sub }}</p>
+                    </div>
+                </div>
+                <p class="desc">{{ t.tools.wg.desc }}</p>
+                <a class="cta cta-wg" href="/wireguard" :aria-label="t.tools.cta + ': ' + t.tools.wg.title">{{ t.tools.cta }} <i class="fas fa-arrow-right"></i></a>
+            </article>
+            <article class="tool-card">
+                <div class="tool-card-header">
+                    <div class="tool-icon wg"><i class="fas fa-link"></i></div>
+                    <div>
+                        <h2>{{ t.tools.wgS2S.title }}</h2>
+                        <p class="sub">{{ t.tools.wgS2S.sub }}</p>
+                    </div>
+                </div>
+                <p class="desc">{{ t.tools.wgS2S.desc }}</p>
+                <a class="cta cta-wg" href="/wireguard-site-to-site" :aria-label="t.tools.cta + ': ' + t.tools.wgS2S.title">{{ t.tools.cta }} <i class="fas fa-arrow-right"></i></a>
+            </article>
+            <article class="tool-card">
+                <div class="tool-card-header">
+                    <div class="tool-icon nat"><i class="fas fa-diagram-project"></i></div>
+                    <div>
+                        <h2>{{ t.tools.eoip.title }} <span class="badge-beta">{{ t.badgeBeta }}</span></h2>
+                        <p class="sub">{{ t.tools.eoip.sub }}</p>
+                    </div>
+                </div>
+                <p class="desc">{{ t.tools.eoip.desc }}</p>
+                <a class="cta cta-wg" href="/eoip-tunnel" :aria-label="t.tools.cta + ': ' + t.tools.eoip.title">{{ t.tools.cta }} <i class="fas fa-arrow-right"></i></a>
+            </article>
+            <article class="tool-card">
+                <div class="tool-card-header">
+                    <div class="tool-icon nat"><i class="fas fa-network-wired"></i></div>
+                    <div>
+                        <h2>{{ t.tools.nat.title }}</h2>
+                        <p class="sub">{{ t.tools.nat.sub }}</p>
+                    </div>
+                </div>
+                <p class="desc">{{ t.tools.nat.desc }}</p>
+                <a class="cta cta-wg" href="/hairpin-nat" :aria-label="t.tools.cta + ': ' + t.tools.nat.title">{{ t.tools.cta }} <i class="fas fa-arrow-right"></i></a>
+            </article>
+            <article class="tool-card">
+                <div class="tool-card-header">
+                    <div class="tool-icon nd"><i class="fas fa-filter"></i></div>
+                    <div>
+                        <h2>{{ t.tools.nd.title }}</h2>
+                        <p class="sub">{{ t.tools.nd.sub }}</p>
+                    </div>
+                </div>
+                <p class="desc">{{ t.tools.nd.desc }}</p>
+                <a class="cta cta-wg" href="/doh" :aria-label="t.tools.cta + ': ' + t.tools.nd.title">{{ t.tools.cta }} <i class="fas fa-arrow-right"></i></a>
+            </article>
+            <article class="tool-card">
+                <div class="tool-card-header">
+                    <div class="tool-icon iptv"><i class="fas fa-tv"></i></div>
+                    <div>
+                        <h2>{{ t.tools.iptv.title }}</h2>
+                        <p class="sub">{{ t.tools.iptv.sub }}</p>
+                    </div>
+                </div>
+                <p class="desc">{{ t.tools.iptv.desc }}</p>
+                <a class="cta cta-wg" href="/iptv" :aria-label="t.tools.cta + ': ' + t.tools.iptv.title">{{ t.tools.cta }} <i class="fas fa-arrow-right"></i></a>
+            </article>
+            <article class="tool-card">
+                <div class="tool-card-header">
+                    <div class="tool-icon nat"><i class="fas fa-wand-magic-sparkles"></i></div>
+                    <div>
+                        <h2>{{ t.tools.startup.title }}</h2>
+                        <p class="sub">{{ t.tools.startup.sub }}</p>
+                    </div>
+                </div>
+                <p class="desc">{{ t.tools.startup.desc }}</p>
+                <a class="cta cta-wg" href="/startup" :aria-label="t.tools.cta + ': ' + t.tools.startup.title">{{ t.tools.cta }} <i class="fas fa-arrow-right"></i></a>
+            </article>
+            <article class="tool-card">
+                <div class="tool-card-header">
+                    <div class="tool-icon nd"><i class="fas fa-crown"></i></div>
+                    <div>
+                        <h2>{{ t.tools.pppoeCheat.title }} <span class="badge-beta">{{ t.badgePremium }}</span></h2>
+                        <p class="sub">{{ t.tools.pppoeCheat.sub }}</p>
+                    </div>
+                </div>
+                <p class="desc">{{ t.tools.pppoeCheat.desc }}</p>
+                <a class="cta cta-wg" href="/cheat-pppoe" :aria-label="t.tools.cta + ': ' + t.tools.pppoeCheat.title">{{ t.tools.cta }} <i class="fas fa-arrow-right"></i></a>
+            </article>
+            <article class="tool-card">
+                <div class="tool-card-header">
+                    <div class="tool-icon wg"><i class="fas fa-shield-halved"></i></div>
+                    <div>
+                        <h2>{{ t.tools.fw.title }} <span class="badge-beta">{{ t.badgeBeta }}</span></h2>
+                        <p class="sub">{{ t.tools.fw.sub }}</p>
+                    </div>
+                </div>
+                <p class="desc">{{ t.tools.fw.desc }}</p>
+                <a class="cta cta-wg" href="/firewall" :aria-label="t.tools.cta + ': ' + t.tools.fw.title">{{ t.tools.cta }} <i class="fas fa-arrow-right"></i></a>
+            </article>
+            <article class="tool-card">
+                <div class="tool-card-header">
+                    <div class="tool-icon nd"><i class="fas fa-cloud"></i></div>
+                    <div>
+                        <h2>{{ t.tools.cf.title }}</h2>
+                        <p class="sub">{{ t.tools.cf.sub }}</p>
+                    </div>
+                </div>
+                <p class="desc">{{ t.tools.cf.desc }}</p>
+                <a class="cta cta-wg" href="/cloudflare-ddns" :aria-label="t.tools.cta + ': ' + t.tools.cf.title">{{ t.tools.cta }} <i class="fas fa-arrow-right"></i></a>
+            </article>
+            <article class="tool-card">
+                <div class="tool-card-header">
+                    <div class="tool-icon nat"><i class="fas fa-ban"></i></div>
+                    <div>
+                        <h2>{{ t.tools.sb.title }}</h2>
+                        <p class="sub">{{ t.tools.sb.sub }}</p>
+                    </div>
+                </div>
+                <p class="desc">{{ t.tools.sb.desc }}</p>
+                <a class="cta cta-wg" href="/social-block" :aria-label="t.tools.cta + ': ' + t.tools.sb.title">{{ t.tools.cta }} <i class="fas fa-arrow-right"></i></a>
+            </article>
+            <article class="tool-card">
+                <div class="tool-card-header">
+                    <div class="tool-icon nd"><i class="fas fa-route"></i></div>
+                    <div>
+                        <h2>{{ t.tools.rt.title }} <span class="badge-beta">{{ t.badgeBeta }}</span></h2>
+                        <p class="sub">{{ t.tools.rt.sub }}</p>
+                    </div>
+                </div>
+                <p class="desc">{{ t.tools.rt.desc }}</p>
+                <a class="cta cta-wg" href="/routing" :aria-label="t.tools.cta + ': ' + t.tools.rt.title">{{ t.tools.cta }} <i class="fas fa-arrow-right"></i></a>
+            </article>
+            <article class="tool-card">
+                <div class="tool-card-header">
+                    <div class="tool-icon nd"><i class="fas fa-code-branch"></i></div>
+                    <div>
+                        <h2>{{ t.tools.pcc.title }} <span class="badge-beta">{{ t.badgeBeta }}</span></h2>
+                        <p class="sub">{{ t.tools.pcc.sub }}</p>
+                    </div>
+                </div>
+                <p class="desc">{{ t.tools.pcc.desc }}</p>
+                <a class="cta cta-wg" href="/pcc" :aria-label="t.tools.cta + ': ' + t.tools.pcc.title">{{ t.tools.cta }} <i class="fas fa-arrow-right"></i></a>
+            </article>
+        </section>
+
+        <section class="donate" id="donate">
+            <h3><i class="fas fa-mug-hot"></i> {{ t.donate.title }}</h3>
+            <p class="donate-intro">{{ t.donate.desc }}</p>
+            <div class="donate-grid">
+                <article class="donate-panel">
+                    <p class="donate-panel-label">{{ t.donate.qrLabel }}</p>
+                    <div class="donate-tile donate-tile-static">
+                        <img class="donate-tile-img" src="https://img.vietqr.io/image/MB-0968884946-compact.png?addTag=ZakshinTools" width="220" height="220" alt="VietQR MB Bank">
+                    </div>
+                    <div class="donate-meta">
+                        <div class="donate-meta-line donate-meta-line--primary"><span class="bank">MB Bank · 0968884946</span></div>
+                        <div class="donate-meta-line donate-meta-line--sub"><strong>Võ Hoàng Hải Nghĩa</strong></div>
+                    </div>
+                </article>
+                <article class="donate-panel">
+                    <p class="donate-panel-label">{{ t.donate.paypalLabel }}</p>
+                    <a class="donate-tile donate-tile-static donate-tile-link" href="https://paypal.me/Zakshin" target="_blank" rel="noopener noreferrer" aria-label="paypal.me/Zakshin">
+                        <img class="donate-tile-img" src="Paypal.png" width="220" height="220" alt="" decoding="async">
+                    </a>
+                    <div class="donate-meta">
+                        <div class="donate-meta-line donate-meta-line--primary"><a class="donate-paypal-link" href="https://paypal.me/Zakshin" target="_blank" rel="noopener noreferrer">paypal.me/Zakshin</a></div>
+                        <div class="donate-meta-line donate-meta-line--sub donate-panel-note">{{ t.donate.paypalNote }}</div>
+                    </div>
+                </article>
+                <article class="donate-panel">
+                    <p class="donate-panel-label">{{ t.donate.brandLabel }}</p>
+                    <div class="donate-tile donate-tile-brand" aria-hidden="true">
+                        <img class="donate-tile-img" src="Logo.png" width="220" height="220" alt="" decoding="async">
+                    </div>
+                    <div class="donate-meta">
+                        <div class="donate-meta-line donate-meta-line--primary"><a class="donate-brand-name" href="https://www.facebook.com/profile.php?id=100006985387032" target="_blank" rel="noopener noreferrer">{{ t.donate.facebookLink }}</a></div>
+                        <div class="donate-meta-line donate-meta-line--sub donate-panel-note">{{ t.donate.feedbackNote }}</div>
+                    </div>
+                </article>
+            </div>
+        </section>
+        </main>
+
+        <footer class="site-footer">
+            <div class="site-footer-inner">
+                <p class="site-footer-line">
+                    <span class="site-footer-brand">Zakshin MikroTik Tools</span>
+                    <span class="site-footer-sep"> — </span>
+                    {{ t.footer.by }}
+                    <a class="site-footer-link" href="https://github.com/ZakShinn" target="_blank" rel="noopener">Nghĩa Zakshin</a>.
+                </p>
+                <p class="site-footer-line site-footer-line--meta">
+                    {{ t.footer.monitor }}:
+                    <a class="site-footer-link" href="https://status.hainghia.net" target="_blank" rel="noopener">status.hainghia.net</a>
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        const translations = {
+            vi: {
+                nav: { tools: 'Công cụ', status: 'Trạng thái', donate: 'Ủng hộ', themeDark: 'Giao diện tối', themeLight: 'Giao diện sáng' },
+                badge: 'RouterOS',
+                badgeBeta: 'Beta',
+                badgePremium: 'Premium',
+                hero: {
+                    title: 'Công cụ web cho MikroTik',
+                    subtitle: 'WireGuard, Hairpin NAT, DoH DNS, IPTV — điền form, copy script dán Terminal. Chạy trong trình duyệt.'
+                },
+                tools: {
+                    cta: 'Mở công cụ',
+                    wg: {
+                        title: 'WireGuard',
+                        sub: 'VPN',
+                        desc: 'Script router, file .conf client, QR tải về.'
+                    },
+                    wgS2S: {
+                        title: 'WireGuard Site-to-Site',
+                        sub: 'VPN giữa 2 chi nhánh',
+                        desc: 'Sinh 2 script RouterOS: interface, peer, IP tunnel /30, route LAN↔LAN.'
+                    },
+                    eoip: {
+                        title: 'EoIP Tunnel',
+                        sub: 'Bridge L2 / Route L3',
+                        desc: 'Sinh 2 script RouterOS tạo EoIP (GRE/L2), IP tunnel /30, và bridge/route tuỳ chọn.'
+                    },
+                    nat: {
+                        title: 'Hairpin NAT',
+                        sub: 'Mở port + xem từ trong LAN',
+                        desc: 'NAT loopback: trong LAN vẫn truy cập dịch vụ qua IP hoặc tên miền giống từ internet.'
+                    },
+                    nd: {
+                        title: 'DoH DNS',
+                        sub: 'Nhiều provider DoH',
+                        desc: 'Sinh lệnh /ip dns qua HTTPS cho NextDNS, Cloudflare, Google, AdGuard, OpenDNS, Quad9. RouterOS 7 trở lên.'
+                    },
+                    iptv: {
+                        title: 'IPTV',
+                        sub: 'VLAN + IGMP',
+                        desc: 'Gợi ý VLAN IPTV trên WAN và IGMP proxy nối sang TV — chỉnh theo nhà mạng.'
+                    },
+                    startup: {
+                        title: 'Script cấu hình ban đầu',
+                        sub: 'Khởi tạo LAN/WiFi',
+                        desc: 'Sinh script khởi đầu: bridge LAN/WiFi, PPPoE, WiFi 2.4/5, DHCP, NAT, DNS, NTP.'
+                    },
+                    pppoeCheat: {
+                        title: 'Cheat PPPoE',
+                        sub: 'Premium',
+                        desc: 'Cheat-sheet PPPoE theo nhà mạng'
+                    },
+                    fw: {
+                        title: 'Firewall',
+                        sub: 'Đang hoàn thiện',
+                        desc: 'Tool firewall đang ở giai đoạn beta. Dùng để tham khảo/gợi ý — luôn kiểm tra kỹ script và test Safe Mode trước khi áp vào router thật.'
+                    },
+                    cf: {
+                        title: 'Cloudflare DDNS',
+                        sub: 'Update DNS record',
+                        desc: 'Sinh script RouterOS cập nhật record A/AAAA qua Cloudflare API (DDNS) + scheduler.'
+                    },
+                    sb: {
+                        title: 'Chặn mạng xã hội',
+                        sub: 'Chặn theo khung giờ',
+                        desc: 'Chọn MXH cần chặn và khung giờ bật/tắt. Tool sinh script firewall + scheduler để copy/paste.'
+                    },
+                    rt: {
+                        title: 'Định tuyến (Policy Routing)',
+                        sub: 'PPPoE / Ether / VPN',
+                        desc: 'Định tuyến theo subnet/nguồn qua pppoe-out, ether, WireGuard/VPN… Sinh script routing table + rule (v7) hoặc mangle (v6).'
+                    },
+                    pcc: {
+                        title: 'PCC',
+                        sub: 'Cân bằng tải nhiều WAN',
+                        desc: 'Sinh script PCC (Per Connection Classifier) để load-balance/failover nhiều đường truyền — chỉnh theo nhu cầu thực tế.'
+                    }
+                },
+                donate: {
+                    title: 'Ủng hộ tác giả',
+                    desc: 'Nếu các công cụ hữu ích, bạn có thể mời một ly cà phê qua chuyển khoản, PayPal hoặc liên hệ qua Facebook.',
+                    qrLabel: 'Đóng góp',
+                    paypalLabel: 'PayPal',
+                    paypalNote: 'Đóng góp qua PayPal',
+                    paypalAria: 'Mở PayPal — paypal.me/Zakshin',
+                    brandLabel: 'Zakshin',
+                    brandAria: 'Mở Facebook Zakshin',
+                    facebookLink: 'Facebook Zakshin',
+                    feedbackNote: 'Đề xuất tính năng và báo lỗi',
+                },
+                footer: { by: 'phát triển bởi', monitor: 'Giám sát' }
+            },
+            en: {
+                nav: { tools: 'Tools', status: 'Status', donate: 'Donate', themeDark: 'Dark theme', themeLight: 'Light theme' },
+                badge: 'RouterOS',
+                badgeBeta: 'Beta',
+                badgePremium: 'Premium',
+                hero: {
+                    title: 'MikroTik tools in your browser',
+                    subtitle: 'WireGuard, Hairpin NAT, DoH DNS, IPTV — fill the form, copy the script into Terminal.'
+                },
+                tools: {
+                    cta: 'Open tool',
+                    wg: {
+                        title: 'WireGuard',
+                        sub: 'VPN',
+                        desc: 'Router script, client .conf files, QR downloads.'
+                    },
+                    wgS2S: {
+                        title: 'WireGuard Site-to-Site',
+                        sub: 'Branch-to-branch VPN',
+                        desc: 'Generates two RouterOS scripts: interface, peer, /30 tunnel IPs, and LAN↔LAN routes.'
+                    },
+                    eoip: {
+                        title: 'EoIP Tunnel',
+                        sub: 'L2 bridge / L3 routes',
+                        desc: 'Generates two RouterOS scripts for EoIP (GRE/L2), /30 tunnel IPs, and optional bridge/routes.'
+                    },
+                    nat: {
+                        title: 'Hairpin NAT',
+                        sub: 'Port forward + LAN access',
+                        desc: 'Loopback NAT so LAN clients can reach services via the same WAN IP or hostname.'
+                    },
+                    nd: {
+                        title: 'DoH DNS',
+                        sub: 'Multiple DoH providers',
+                        desc: 'Generate /ip dns over HTTPS for NextDNS, Cloudflare, Google, AdGuard, OpenDNS, and Quad9. RouterOS v7 or newer.'
+                    },
+                    iptv: {
+                        title: 'IPTV',
+                        sub: 'VLAN + IGMP',
+                        desc: 'Starter VLAN-on-WAN and IGMP proxy wiring for TV — adjust per ISP.'
+                    },
+                    startup: {
+                        title: 'Initial setup script',
+                        sub: 'LAN/WiFi bootstrap',
+                        desc: 'Generate a starter script: LAN/WiFi bridges, PPPoE, dual-band WiFi, DHCP, NAT, DNS, NTP.'
+                    },
+                    pppoeCheat: {
+                        title: 'PPPoE Cheat',
+                        sub: 'Premium',
+                        desc: 'PPPoE cheat-sheet by ISP'
+                    },
+                    fw: {
+                        title: 'Firewall',
+                        sub: 'Work in progress',
+                        desc: 'Firewall tool is currently beta. Use as a reference only — review the script and test in Safe Mode before applying to production routers.'
+                    },
+                    cf: {
+                        title: 'Cloudflare DDNS',
+                        sub: 'Update DNS record',
+                        desc: 'Generate a RouterOS script to update Cloudflare DNS A/AAAA (DDNS) + scheduler.'
+                    },
+                    sb: {
+                        title: 'Block social media',
+                        sub: 'Time-based blocking',
+                        desc: 'Pick services and a daily time window. Generates firewall rules + scheduler for copy/paste.'
+                    },
+                    rt: {
+                        title: 'Policy Routing',
+                        sub: 'PPPoE / Ether / VPN',
+                        desc: 'Route selected source subnets via pppoe-out, ether, WireGuard/VPN… Generates routing table + rules (v7) or mangle (v6).'
+                    },
+                    pcc: {
+                        title: 'PCC',
+                        sub: 'Multi-WAN load balancing',
+                        desc: 'Generate PCC (Per Connection Classifier) scripts for multi-WAN load-balance/failover — adjust to your real topology.'
+                    }
+                },
+                donate: {
+                    title: 'Support the author',
+                    desc: 'If these tools help you, you can donate via bank transfer, PayPal, or reach out on Facebook.',
+                    qrLabel: 'Bank transfer',
+                    paypalLabel: 'PayPal',
+                    paypalNote: 'Secure checkout via PayPal.',
+                    paypalAria: 'Open PayPal — paypal.me/Zakshin',
+                    brandLabel: 'Zakshin',
+                    brandAria: 'Open Zakshin on Facebook',
+                    facebookLink: 'Zakshin on Facebook',
+                    feedbackNote: 'Feature requests and bug reports',
+                },
+                footer: { by: 'built by', monitor: 'Monitoring' }
+            }
+        };
+
+        createApp({
+            data() {
+                return {
+                    lang: typeof MikrotikLang !== 'undefined' ? MikrotikLang.get() : 'vi',
+                    theme: typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light',
+                    menuOpen: false,
+                    isNarrow: typeof window !== 'undefined' && window.innerWidth <= 520
+                };
+            },
+            computed: {
+                t() { return translations[this.lang]; }
+            },
+            mounted() {
+                const onTheme = (e) => { this.theme = e.detail.theme; };
+                window.addEventListener('mikrotik-theme-effective-change', onTheme);
+                this._offTheme = () => window.removeEventListener('mikrotik-theme-effective-change', onTheme);
+
+                const onLang = (e) => { this.lang = (e && e.detail && e.detail.lang) ? e.detail.lang : this.lang; };
+                window.addEventListener('mikrotik-lang-change', onLang);
+                this._offLang = () => window.removeEventListener('mikrotik-lang-change', onLang);
+
+                const mq = () => {
+                    this.isNarrow = window.innerWidth <= 520;
+                    if (!this.isNarrow) this.menuOpen = false;
+                };
+                window.addEventListener('resize', mq);
+                mq();
+            },
+            beforeUnmount() {
+                if (this._offTheme) this._offTheme();
+                if (this._offLang) this._offLang();
+            },
+            methods: {
+                toggleLang() {
+                    if (typeof MikrotikLang !== 'undefined') this.lang = MikrotikLang.toggle();
+                    else this.lang = this.lang === 'vi' ? 'en' : 'vi';
+                },
+                toggleTheme() {
+                    if (typeof MikrotikTheme !== 'undefined') MikrotikTheme.toggle();
+                    this.theme = typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light';
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

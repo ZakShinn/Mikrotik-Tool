@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <script>(function(){try{var k=localStorage.getItem('mikrotik-theme');var d=false;if(k==='dark')d=true;else if(k!=='light'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)d=true;if(d)document.documentElement.classList.add('theme-dark');}catch(e){}})();</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>MikroTik Hairpin NAT — Script NAT loopback &amp; port forward | Zakshin</title>
+    <meta name="description" content="Sinh script Hairpin NAT cho MikroTik: truy cập dịch vụ nội bộ qua IP WAN khi ở LAN, kèm dst-nat WAN. Dán script vào RouterOS — xử lý trên trình duyệt.">
+    <meta name="keywords" content="MikroTik, Hairpin NAT, NAT loopback, dst-nat, port forward, RouterOS, Zakshin">
+    <meta name="author" content="Nghĩa Zakshin">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="https://mikrotik.hainghia.net/hairpin-nat">
+    <link rel="alternate" hreflang="vi" href="https://mikrotik.hainghia.net/hairpin-nat">
+    <link rel="alternate" hreflang="en" href="https://mikrotik.hainghia.net/hairpin-nat">
+    <link rel="alternate" hreflang="x-default" href="https://mikrotik.hainghia.net/hairpin-nat">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="../sitemap.xml">
+    <link rel="icon" type="image/png" href="../Logo.png">
+    <link rel="apple-touch-icon" href="../Logo.png">
+    <link rel="manifest" href="../site.webmanifest">
+    <meta name="theme-color" content="#f5f7fa">
+    <meta name="format-detection" content="telephone=no">
+
+    <meta property="og:site_name" content="MikroTik Tools — Zakshin">
+    <meta property="og:title" content="MikroTik Hairpin NAT — Script cho RouterOS | Zakshin">
+    <meta property="og:description" content="Tạo script firewall &amp; NAT Hairpin trên MikroTik: loopback LAN, mở port WAN.">
+    <meta property="og:url" content="https://mikrotik.hainghia.net/hairpin-nat">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:image" content="https://mikrotik.hainghia.net/Logo.png">
+    <meta property="og:image:alt" content="MikroTik Hairpin NAT Generator">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="MikroTik Hairpin NAT — Zakshin">
+    <meta name="twitter:description" content="Script Hairpin NAT &amp; port forward cho RouterOS.">
+    <meta name="twitter:image" content="https://mikrotik.hainghia.net/Logo.png">
+
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@graph":[
+      {"@type":"WebApplication","name":"MikroTik Hairpin NAT Generator","url":"https://mikrotik.hainghia.net/hairpin-nat","applicationCategory":"NetworkingApplication","operatingSystem":"Web Browser","browserRequirements":"Requires JavaScript.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"Nghĩa Zakshin","url":"https://github.com/ZakShinn"},"description":"Sinh script Hairpin NAT cho MikroTik RouterOS."},
+      {"@type":"BreadcrumbList","itemListElement":[
+        {"@type":"ListItem","position":1,"name":"Trang chủ","item":"https://mikrotik.hainghia.net/"},
+        {"@type":"ListItem","position":2,"name":"Hairpin NAT","item":"https://mikrotik.hainghia.net/hairpin-nat"}
+      ]}
+    ]}
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../assets/site.css">
+    <script src="../assets/theme-ui.js"></script>
+    <script src="../assets/lang-ui.js"></script>
+    <script type="application/json" id="seo-i18n-data">{"en":{"title":"MikroTik Hairpin NAT — Loopback NAT & port forward scripts | Zakshin","description":"Generate Hairpin NAT scripts for MikroTik: reach internal services from LAN using the WAN IP or hostname, with dst-nat from WAN. Browser-side; paste into RouterOS.","keywords":"MikroTik, Hairpin NAT, NAT loopback, dst-nat, port forward, RouterOS, Zakshin","ogTitle":"MikroTik Hairpin NAT — RouterOS scripts | Zakshin","ogDesc":"Firewall and Hairpin NAT for MikroTik: LAN loopback and WAN port forwarding.","twitterTitle":"MikroTik Hairpin NAT | Zakshin","twitterDesc":"Hairpin NAT and port-forward scripts for RouterOS.","ogImageAlt":"MikroTik Hairpin NAT Generator"}}</script>
+    <script src="../assets/seo-i18n.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="app-shell">
+    <div class="noise" aria-hidden="true"></div>
+    <div id="app" class="app-shell">
+        <div v-if="showToast" class="toast-msg">
+            <i class="fas fa-check-circle text-success mr-2"></i> {{ t.ui.copied }}
+        </div>
+
+        <nav class="tool-nav">
+            <div class="tool-nav-inner">
+                <div class="tool-nav-row">
+                    <div class="tool-nav-brand">
+                        <a href="/" class="btn btn-ghost btn-sm btn-icon" title="Trang chủ" aria-label="Trang chủ"><i class="fas fa-home"></i></a>
+                        <span class="tool-nav-logo" aria-hidden="true"><img src="../Logo.png" alt="" width="34" height="34" decoding="async"></span>
+                        <h1 class="tool-nav-title"><i class="fas fa-route accent-icon"></i> Hairpin NAT</h1>
+                    </div>
+                    <div class="tool-nav-actions">
+                        <button type="button" class="btn btn-ghost btn-sm btn-icon" @click="toggleTheme" :aria-label="theme === 'dark' ? t.ui.themeLight : t.ui.themeDark" :title="theme === 'dark' ? t.ui.themeLight : t.ui.themeDark">
+                            <i :class="theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" class="btn btn-ghost btn-sm" @click="toggleLang">
+                            <i class="fas fa-globe mr-1"></i> {{ lang === 'vi' ? 'English' : 'Tiếng Việt' }}
+                        </button>
+                    </div>
+                    <div class="tool-nav-meta">
+                        <div><strong>Nghĩa Zakshin</strong></div>
+                        <div class="tool-nav-meta-sub">MikroTik Tools</div>
+                        <div class="tool-nav-meta-sub"><i class="fas fa-circle-check mr-1"></i> {{ t.ui.testedOn }}</div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="tool-main">
+            <div class="layout-split">
+                <section class="panel nat-panel-form">
+                    <h2 class="section-title"><i class="fas fa-sliders-h mr-2"></i> {{ t.ui.serverConfig }}</h2>
+
+                    <div v-for="field in fieldsList" :key="field" class="field">
+                        <label class="label">
+                            {{ t.labels[field] }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels[field] }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints[field].aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints[field].type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="t-val"><span class="tip-def">{{ t.hints[field].def }}</span></span></span>
+                                </span>
+                            </span>
+                        </label>
+
+                        <div v-if="field === 'proto'" class="control">
+                            <div class="select">
+                                <select v-model="form.proto">
+                                    <option value="tcp">TCP</option>
+                                    <option value="udp">UDP</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div v-else-if="field === 'wanInt'" class="control">
+                            <div class="field-addons">
+                                <div style="flex:1;min-width:0">
+                                    <input class="input" v-model="form.wanInt" :disabled="form.wanMode === 'all'">
+                                </div>
+                                <div class="select">
+                                    <select v-model="form.wanMode">
+                                        <option value="custom">Custom</option>
+                                        <option value="all">All PPP</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-else class="control">
+                            <input class="input" v-model="form[field]">
+                        </div>
+                    </div>
+
+                    <div class="wg-checkboxes" style="margin-top:12px">
+                        <label class="checkbox-row">
+                            <input type="checkbox" v-model="skipMasquerade">
+                            <span class="checkbox-text">{{ t.ui.skipMasquerade }}</span>
+                            <span class="info-tip" tabindex="0"><i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.tipDetails }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.ui.skipMasqueradeTip }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="panel panel-script nat-panel-script">
+                    <div class="code-container">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:.5rem">
+                            <div style="font-weight:700; color:var(--text)"><i class="fas fa-terminal mr-2"></i> {{ t.ui.scriptTitle }}</div>
+                            <button type="button" class="btn btn-dark btn-sm copy-btn" @click="copyText('main-script')"><i class="fas fa-copy mr-1"></i> {{ t.ui.copy }}</button>
+                        </div>
+
+                        <pre id="main-script" class="script-pre">/ip firewall address-list
+add address={{ form.lanSubnet }} list=LAN
+
+/ip firewall nat
+<template v-if="!skipMasquerade">
+add action=masquerade chain=srcnat comment="Hairpin NAT" \
+    dst-address=!{{ form.routerIp }} src-address-list=LAN
+
+</template>
+add action=dst-nat chain=dstnat comment="Internal Hairpin - {{ form.purpose }}" \
+    dst-address-type=local dst-port={{ form.port }} protocol={{ form.proto }} \
+    src-address-list=LAN to-addresses={{ form.serverIp }} to-ports={{ form.port }}
+
+add action=dst-nat chain=dstnat comment="External Port Forward - {{ form.purpose }}" \
+    dst-port={{ form.port }} {{ form.wanMode === 'all' ? 'in-interface-list=all-ppp' : 'in-interface=' + form.wanInt }} \
+    protocol={{ form.proto }} to-addresses={{ form.serverIp }} to-ports={{ form.port }}</pre>
+                    </div>
+
+                    <div class="callout mb-0">
+                        <strong><i class="fas fa-info-circle mr-1"></i></strong> {{ t.ui.note }}
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        const i18n = {
+            vi: {
+                labels: {
+                    purpose: 'Tên ghi trong comment',
+                    lanSubnet: 'Dải LAN',
+                    routerIp: 'IP gateway router',
+                    serverIp: 'IP máy chủ (trong LAN)',
+                    port: 'Cổng dịch vụ',
+                    proto: 'TCP hay UDP',
+                    wanInt: 'Cổng WAN / PPP'
+                },
+                hints: {
+                    purpose: { aim: 'Chỉ để nhận biết trong comment rule trên router (VD Web, Camera).', type: 'Chữ', def: 'Web' },
+                    lanSubnet: { aim: 'Subnet LAN của router, dạng CIDR.', type: 'CIDR', def: '192.168.88.0/24' },
+                    routerIp: { aim: 'Địa chỉ LAN của router (gateway).', type: 'IPv4', def: '192.168.88.1' },
+                    serverIp: { aim: 'Máy chạy dịch vụ trong LAN; nên đặt IP tĩnh.', type: 'IPv4', def: '192.168.88.100' },
+                    port: { aim: 'Số cổng dịch vụ (HTTP thường 80, HTTPS 443).', type: 'Số', def: '80' },
+                    proto: { aim: 'Chọn đúng giao thức lớp transport của dịch vụ.', type: 'TCP / UDP', def: 'TCP' },
+                    wanInt: { aim: 'Tên interface WAN khi NAT từ ngoài vào (VD pppoe-out1). Chọn All PPP nếu có nhiều đường PPP và muốn áp cho cả danh sách all-ppp.', type: 'Tên cổng', def: 'pppoe-out1' }
+                },
+                ui: {
+                    serverConfig: 'Thông số',
+                    scriptTitle: 'Script RouterOS',
+                    copy: 'Copy script',
+                    skipMasquerade: 'Bỏ rule masquerade Hairpin NAT (nếu đã có sẵn)',
+                    skipMasqueradeTip: 'Dành cho trường hợp router đã có rule masquerade Hairpin NAT từ trước theo script này, tránh trùng rule.',
+                    note: 'Masquerade Hairpin chỉ cần một lần cho cả LAN. Kiểm tra không trùng rule NAT/Mangle cũ.',
+                    copied: 'Đã sao chép!',
+                    tipDetails: 'Chi tiết',
+                    tipAim: 'Giải thích',
+                    tipType: 'Kiểu',
+                    tipDef: 'Ví dụ',
+                    testedOn: 'Đã test ổn định trên RouterOS v7.22',
+                    themeDark: 'Giao diện tối',
+                    themeLight: 'Giao diện sáng'
+                }
+            },
+            en: {
+                labels: {
+                    purpose: 'Label in comments',
+                    lanSubnet: 'LAN subnet',
+                    routerIp: 'Router gateway IP',
+                    serverIp: 'Server IP on LAN',
+                    port: 'Service port',
+                    proto: 'TCP or UDP',
+                    wanInt: 'WAN / PPP interface'
+                },
+                hints: {
+                    purpose: { aim: 'Shows up only inside NAT comments so you can spot rules later.', type: 'Text', def: 'Web' },
+                    lanSubnet: { aim: 'Your LAN in CIDR notation.', type: 'CIDR', def: '192.168.88.0/24' },
+                    routerIp: { aim: 'Router LAN address (gateway).', type: 'IPv4', def: '192.168.88.1' },
+                    serverIp: { aim: 'Host running the service; best practice is a static LAN IP.', type: 'IPv4', def: '192.168.88.100' },
+                    port: { aim: 'Service port number (HTTP 80, HTTPS 443, etc.).', type: 'Number', def: '80' },
+                    proto: { aim: 'Must match how the service listens on the wire.', type: 'TCP / UDP', def: 'TCP' },
+                    wanInt: { aim: 'WAN-facing interface name for inbound NAT (e.g. pppoe-out1). Pick All PPP to apply to every PPP uplink.', type: 'Interface name', def: 'pppoe-out1' }
+                },
+                ui: {
+                    serverConfig: 'Parameters',
+                    scriptTitle: 'RouterOS script',
+                    copy: 'Copy script',
+                    skipMasquerade: 'Skip Hairpin NAT masquerade rule (if you already have it)',
+                    skipMasqueradeTip: 'Use this if your router already has the Hairpin NAT masquerade rule from a previous run of this script to avoid duplicates.',
+                    note: 'One Hairpin masquerade covers the whole LAN. Avoid duplicate NAT/Mangle clashes.',
+                    copied: 'Copied!',
+                    tipDetails: 'Details',
+                    tipAim: 'Explain',
+                    tipType: 'Kind',
+                    tipDef: 'Example',
+                    testedOn: 'Tested stable on RouterOS v7.22',
+                    themeDark: 'Dark theme',
+                    themeLight: 'Light theme'
+                }
+            }
+        };
+
+        createApp({
+            data() {
+                return {
+                    lang: typeof MikrotikLang !== 'undefined' ? MikrotikLang.get() : 'vi',
+                    theme: typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light',
+                    showToast: false,
+                    skipMasquerade: false,
+                    fieldsList: ['purpose', 'lanSubnet', 'routerIp', 'serverIp', 'port', 'proto', 'wanInt'],
+                    form: { purpose: 'Web Service', lanSubnet: '192.168.88.0/24', routerIp: '192.168.88.1', serverIp: '192.168.88.100', port: '80', proto: 'tcp', wanInt: 'pppoe-out1', wanMode: 'custom' }
+                };
+            },
+            computed: { t() { return i18n[this.lang]; } },
+            methods: {
+                toggleLang() {
+                    if (typeof MikrotikLang !== 'undefined') this.lang = MikrotikLang.toggle();
+                    else this.lang = this.lang === 'vi' ? 'en' : 'vi';
+                },
+                toggleTheme() {
+                    if (typeof MikrotikTheme !== 'undefined') MikrotikTheme.toggle();
+                    this.theme = typeof MikrotikTheme !== 'undefined' ? MikrotikTheme.get() : 'light';
+                },
+                toast() {
+                    this.showToast = true;
+                    setTimeout(() => { this.showToast = false; }, 2500);
+                },
+                copyText(id) {
+                    const el = document.getElementById(id);
+                    const txt = el ? el.innerText : '';
+                    navigator.clipboard.writeText(txt);
+                    this.toast();
+                }
+            },
+            mounted() {
+                const onTheme = (e) => { this.theme = e.detail.theme; };
+                window.addEventListener('mikrotik-theme-effective-change', onTheme);
+                this._offTheme = () => window.removeEventListener('mikrotik-theme-effective-change', onTheme);
+                const onLang = (e) => { this.lang = (e && e.detail && e.detail.lang) ? e.detail.lang : this.lang; };
+                window.addEventListener('mikrotik-lang-change', onLang);
+                this._offLang = () => window.removeEventListener('mikrotik-lang-change', onLang);
+            },
+            beforeUnmount() {
+                if (this._offTheme) this._offTheme();
+                if (this._offLang) this._offLang();
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
