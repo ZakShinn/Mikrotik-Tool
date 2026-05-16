@@ -1505,6 +1505,51 @@ footer.site-footer a.site-footer-link:hover {
     color: var(--text);
 }
 
+.seo-tools-nav {
+    margin: 0 auto clamp(0.75rem, 2vw, 1rem);
+    max-width: 52rem;
+    padding: 0 0.5rem;
+}
+
+.seo-tools-nav-label {
+    margin: 0 0 0.45rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.seo-tools-nav-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem 0.65rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.seo-tools-nav-list a {
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.seo-tools-nav-list a:hover {
+    color: var(--text);
+    text-decoration: underline;
+    text-underline-offset: 0.12em;
+}
+
+.tool-page-footer {
+    margin-top: 1.25rem;
+    padding: 1rem 0.75rem 1.25rem;
+    border-top: 1px solid var(--border);
+}
+
 .mr-1 {
     margin-right: 0.25rem;
 }
