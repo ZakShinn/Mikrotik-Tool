@@ -115,71 +115,62 @@
                     </div>
 
                     <div class="field">
-                        <label class="label">
-                            {{ t.labels.ispVlan }}
-                            <span class="info-tip" tabindex="0">
-                                <i class="fas fa-circle-question"></i>
-                                <span class="tip-content">
-                                    <span class="tip-header">{{ t.labels.ispVlan }}</span>
-                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.ispVlan.aim }}</span></span>
-                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.ispVlan.type }}</span></span>
-                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.ispVlan.def }}</span></span>
-                                </span>
-                            </span>
-                        </label>
-                        <div class="control">
-                            <div class="select">
-                                <select v-model="form.ispVlanPreset">
-                                    <option v-for="opt in t.ui.ispVlanOptions" :key="opt.id" :value="opt.id">{{ opt.label }}</option>
-                                </select>
-                            </div>
-                        </div>
-                        <p class="help mb-0">{{ ispVlanPresetHelp }}</p>
-                    </div>
-
-                    <div v-if="form.ispVlanPreset === 'custom'" class="field">
                         <label class="checkbox-row">
                             <input type="checkbox" v-model="form.useVlan">
                             <span class="checkbox-text">{{ t.ui.useVlanTag }}</span>
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.ui.useVlanTag }}</span>
+                                    <span class="tip-row"><span class="t-val">{{ t.hints.useVlan }}</span></span>
+                                </span>
+                            </span>
                         </label>
-                        <template v-if="form.useVlan">
-                            <label class="label mt-2">
+                        <p v-if="!form.useVlan" class="help mb-0">{{ t.ui.noVlanHint }}</p>
+                    </div>
+
+                    <template v-if="form.useVlan">
+                        <div class="field">
+                            <label class="label">
+                                {{ t.labels.ispVlan }}
+                                <span class="info-tip" tabindex="0">
+                                    <i class="fas fa-circle-question"></i>
+                                    <span class="tip-content">
+                                        <span class="tip-header">{{ t.labels.ispVlan }}</span>
+                                        <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.ispVlan.aim }}</span></span>
+                                        <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.ispVlan.type }}</span></span>
+                                        <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.ispVlan.def }}</span></span>
+                                    </span>
+                                </span>
+                            </label>
+                            <div class="control">
+                                <div class="select">
+                                    <select v-model="form.ispVlanPreset">
+                                        <option v-for="opt in t.ui.ispVlanOptions" :key="opt.id" :value="opt.id">{{ opt.label }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <p class="help mb-0">{{ ispVlanPresetHelp }}</p>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">
                                 {{ t.labels.vlanId }}
                                 <span class="info-tip" tabindex="0">
                                     <i class="fas fa-circle-question"></i>
                                     <span class="tip-content">
                                         <span class="tip-header">{{ t.labels.vlanId }}</span>
                                         <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.vlanId.aim }}</span></span>
+                                        <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.vlanId.type }}</span></span>
+                                        <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.vlanId.def }}</span></span>
                                     </span>
                                 </span>
                             </label>
                             <div class="control">
-                                <input class="input" v-model="form.vlanId" type="number" min="1" max="4094" inputmode="numeric">
+                                <input class="input" v-model="form.vlanId" type="number" min="1" max="4094" inputmode="numeric" :disabled="form.ispVlanPreset !== 'custom'">
                             </div>
-                        </template>
-                    </div>
-
-                    <div v-else-if="form.useVlan" class="field">
-                        <label class="label">
-                            {{ t.labels.vlanId }}
-                            <span class="info-tip" tabindex="0">
-                                <i class="fas fa-circle-question"></i>
-                                <span class="tip-content">
-                                    <span class="tip-header">{{ t.labels.vlanId }}</span>
-                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.vlanId.aim }}</span></span>
-                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.vlanId.type }}</span></span>
-                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.vlanId.def }}</span></span>
-                                </span>
-                            </span>
-                        </label>
-                        <div class="control">
-                            <input class="input" v-model="form.vlanId" type="number" min="1" max="4094" inputmode="numeric" disabled>
                         </div>
-                    </div>
-
-                    <div v-else class="field">
-                        <p class="help mb-0"><i class="fas fa-info-circle mr-1"></i> {{ t.ui.noVlanHint }}</p>
-                    </div>
+                    </template>
 
                     <div class="field">
                         <label class="label">
@@ -422,6 +413,7 @@
                     ifaceCount: { aim: 'Số cổng ether của router (vd hEX = 5).', type: 'Số', def: '5' },
                     wanPort: { aim: 'Chọn cổng đang cắm modem/ONT. Script đổi tên thành "WAN"; nếu bật VLAN thì tạo vlan-wan rồi PPPoE chạy trên đó.', type: 'etherN', def: 'ether1' },
                     lanPorts: { aim: 'Các cổng LAN sẽ được add vào bridge "LAN Network". Cổng WAN được tự loại khỏi danh sách.', type: 'Danh sách', def: 'ether2..ether5' },
+                    useVlan: 'Bật để gắn VLAN tag trên cổng WAN trước PPPoE (Viettel/VNPT). Tắt nếu nhà mạng không dùng VLAN (vd FPT).',
                     hasWifi: 'Bật nếu router có WiFi để hiện phần cấu hình wireless (SSID/password + bridge WiFi).',
                     wifiSsid: { aim: 'Tên WiFi (SSID). Tool sẽ áp cùng SSID cho 2.4GHz và 5GHz theo template.', type: 'Chữ', def: 'MikroTik' },
                     wifiPass: { aim: 'Mật khẩu WiFi (WPA2-PSK). Tối thiểu 8 ký tự.', type: 'Chữ', def: 'yourStrongPass' },
@@ -448,18 +440,16 @@
                         { id: 'viettel', label: 'Viettel — VLAN 35' },
                         { id: 'vnpt-modem', label: 'VNPT — modem/ONT (VLAN 11)' },
                         { id: 'vnpt-ext', label: 'VNPT — thiết bị ngoài (VLAN 529)' },
-                        { id: 'fpt', label: 'FPT — không VLAN' },
                         { id: 'custom', label: 'Tùy chỉnh VLAN' }
                     ],
                     ispVlanHelp: {
                         viettel: 'Viettel: tag VLAN 35 trên WAN, PPPoE trên vlan-wan.',
                         'vnpt-modem': 'VNPT qua modem/ONT: VLAN 11 (một số tỉnh có thể khác — hỏi ISP).',
                         'vnpt-ext': 'VNPT qua converter/thiết bị ngoài: VLAN 529.',
-                        fpt: 'FPT: PPPoE trực tiếp trên WAN, không tạo VLAN.',
-                        custom: 'Nhập VLAN ID và bật tag nếu ISP khác các mẫu trên.'
+                        custom: 'Nhập VLAN ID nếu ISP khác các mẫu trên.'
                     },
-                    useVlanTag: 'Gắn VLAN tag trên WAN',
-                    noVlanHint: 'PPPoE chạy trực tiếp trên interface WAN (không VLAN).',
+                    useVlanTag: 'Bật VLAN tag trên WAN',
+                    noVlanHint: 'Tắt: PPPoE trực tiếp trên WAN (phù hợp FPT và ISP không VLAN).',
                     wifiSsidPh: 'MikroTik',
                     wifiPassPh: 'Nhập mật khẩu WiFi (tối thiểu 8 ký tự)',
                     hasWifi: 'Thiết bị có WiFi (hiện phần cấu hình wireless)',
@@ -493,6 +483,7 @@
                     ifaceCount: { aim: 'How many ether ports your router has (e.g. hEX = 5).', type: 'Number', def: '5' },
                     wanPort: { aim: 'Port to modem/ONT, renamed "WAN". With VLAN enabled, vlan-wan is created and PPPoE uses it.', type: 'etherN', def: 'ether1' },
                     lanPorts: { aim: 'Ports added into the "LAN Network" bridge. The WAN port is automatically excluded.', type: 'List', def: 'ether2..ether5' },
+                    useVlan: 'Enable to tag VLAN on WAN before PPPoE (Viettel/VNPT). Disable if your ISP has no VLAN (e.g. FPT).',
                     hasWifi: 'Enable if the device has WiFi to show wireless configuration (SSID/password + WiFi bridge).',
                     wifiSsid: { aim: 'WiFi SSID. The template sets the same SSID for both 2.4GHz and 5GHz.', type: 'Text', def: 'MikroTik' },
                     wifiPass: { aim: 'WiFi password (WPA2-PSK). Minimum 8 characters.', type: 'Text', def: 'yourStrongPass' },
@@ -519,18 +510,16 @@
                         { id: 'viettel', label: 'Viettel — VLAN 35' },
                         { id: 'vnpt-modem', label: 'VNPT — modem/ONT (VLAN 11)' },
                         { id: 'vnpt-ext', label: 'VNPT — external device (VLAN 529)' },
-                        { id: 'fpt', label: 'FPT — no VLAN' },
                         { id: 'custom', label: 'Custom VLAN' }
                     ],
                     ispVlanHelp: {
                         viettel: 'Viettel: VLAN 35 on WAN, PPPoE on vlan-wan.',
                         'vnpt-modem': 'VNPT via modem/ONT: VLAN 11 (may vary by province — confirm with ISP).',
                         'vnpt-ext': 'VNPT via external converter/CPE: VLAN 529.',
-                        fpt: 'FPT: PPPoE directly on WAN, no VLAN interface.',
-                        custom: 'Enter a VLAN ID and enable tagging for other ISPs.'
+                        custom: 'Enter VLAN ID for other ISPs.'
                     },
-                    useVlanTag: 'Tag VLAN on WAN',
-                    noVlanHint: 'PPPoE runs directly on WAN (no VLAN).',
+                    useVlanTag: 'Enable WAN VLAN tag',
+                    noVlanHint: 'Off: PPPoE directly on WAN (typical for FPT and non-VLAN ISPs).',
                     wifiSsidPh: 'MikroTik',
                     wifiPassPh: 'Enter WiFi password (min 8 characters)',
                     hasWifi: 'This device has WiFi (show wireless config)',
@@ -566,11 +555,10 @@
         }
 
         const ISP_VLAN_PRESETS = {
-            viettel: { useVlan: true, vlanId: 35 },
-            'vnpt-modem': { useVlan: true, vlanId: 11 },
-            'vnpt-ext': { useVlan: true, vlanId: 529 },
-            fpt: { useVlan: false, vlanId: 0 },
-            custom: { useVlan: true, vlanId: null }
+            viettel: { vlanId: 35 },
+            'vnpt-modem': { vlanId: 11 },
+            'vnpt-ext': { vlanId: 529 },
+            custom: { vlanId: null }
         };
 
         createApp({
@@ -583,7 +571,7 @@
                         pppoeUser: '',
                         pppoePass: '',
                         ispVlanPreset: 'viettel',
-                        useVlan: true,
+                        useVlan: false,
                         vlanId: '35',
                         hasWifi: false,
                         ifaceCount: '5',
@@ -790,19 +778,17 @@
             },
             watch: {
                 'form.ispVlanPreset'(preset) {
-                    this.applyIspVlanPreset(preset);
+                    if (this.form.useVlan) this.applyIspVlanPreset(preset);
+                },
+                'form.useVlan'(on) {
+                    if (on) this.applyIspVlanPreset(this.form.ispVlanPreset);
                 }
             },
             methods: {
                 applyIspVlanPreset(preset) {
                     const key = preset || this.form.ispVlanPreset || 'viettel';
                     const cfg = ISP_VLAN_PRESETS[key] || ISP_VLAN_PRESETS.viettel;
-                    if (key !== 'custom') {
-                        this.form.useVlan = cfg.useVlan;
-                        if (cfg.vlanId) this.form.vlanId = String(cfg.vlanId);
-                    } else if (!this.form.useVlan) {
-                        this.form.useVlan = true;
-                    }
+                    if (cfg.vlanId) this.form.vlanId = String(cfg.vlanId);
                 },
                 toggleLang() {
                     if (typeof MikrotikLang !== 'undefined') this.lang = MikrotikLang.toggle();
