@@ -238,6 +238,25 @@
                     </div>
 
                     <div class="field">
+                        <label class="label">
+                            {{ t.labels.bridgeLanName }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.bridgeLanName }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.bridgeLanName.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.bridgeLanName.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.bridgeLanName.def }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <input class="input" v-model.trim="form.bridgeLanName" :placeholder="t.ui.bridgeLanNamePh" autocomplete="off">
+                        </div>
+                        <p v-if="bridgeLanNameInvalid" class="help text-danger mb-0">{{ t.ui.bridgeNameRequired }}</p>
+                    </div>
+
+                    <div class="field">
                         <label class="checkbox-row">
                             <input type="checkbox" v-model="form.hasWifi">
                             <span class="checkbox-text">{{ t.ui.hasWifi }}</span>
@@ -281,6 +300,25 @@
                         </label>
                         <div class="control"><input class="input" v-model="form.wifiPass" :placeholder="t.ui.wifiPassPh" autocomplete="off"></div>
                         <p v-if="wifiPassTooShort" class="help text-danger mb-0">{{ t.ui.wifiPassMin }}</p>
+                    </div>
+
+                    <div v-if="form.hasWifi" class="field">
+                        <label class="label">
+                            {{ t.labels.bridgeWifiName }}
+                            <span class="info-tip" tabindex="0">
+                                <i class="fas fa-circle-question"></i>
+                                <span class="tip-content">
+                                    <span class="tip-header">{{ t.labels.bridgeWifiName }}</span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipAim }}:</span> <span class="t-val">{{ t.hints.bridgeWifiName.aim }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipType }}:</span> <span class="t-val">{{ t.hints.bridgeWifiName.type }}</span></span>
+                                    <span class="tip-row"><span class="t-label">{{ t.ui.tipDef }}:</span> <span class="tip-code">{{ t.hints.bridgeWifiName.def }}</span></span>
+                                </span>
+                            </span>
+                        </label>
+                        <div class="control">
+                            <input class="input" v-model.trim="form.bridgeWifiName" :placeholder="t.ui.bridgeWifiNamePh" autocomplete="off">
+                        </div>
+                        <p v-if="bridgeWifiNameInvalid" class="help text-danger mb-0">{{ t.ui.bridgeNameRequired }}</p>
                     </div>
 
                     <div class="field">
@@ -398,6 +436,8 @@
                     vlanId: 'VLAN ID (tag trên WAN)',
                     ifaceCount: 'Số lượng interface (ether)',
                     wanPort: 'Cổng WAN (nối modem/ONT)',
+                    bridgeLanName: 'Tên bridge LAN',
+                    bridgeWifiName: 'Tên bridge WiFi',
                     lanPorts: 'Các cổng LAN add vào bridge LAN',
                     wifiSsid: 'SSID WiFi (2.4/5)',
                     wifiPass: 'Mật khẩu WiFi (WPA2-PSK)',
@@ -412,12 +452,14 @@
                     vlanId: { aim: 'Số VLAN gắn trên interface WAN. PPPoE sẽ chạy trên interface vlan-wan.', type: '1–4094', def: '35' },
                     ifaceCount: { aim: 'Số cổng ether của router (vd hEX = 5).', type: 'Số', def: '5' },
                     wanPort: { aim: 'Chọn cổng đang cắm modem/ONT. Script đổi tên thành "WAN"; nếu bật VLAN thì tạo vlan-wan rồi PPPoE chạy trên đó.', type: 'etherN', def: 'ether1' },
-                    lanPorts: { aim: 'Các cổng LAN sẽ được add vào bridge "LAN Network". Cổng WAN được tự loại khỏi danh sách.', type: 'Danh sách', def: 'ether2..ether5' },
+                    bridgeLanName: { aim: 'Tên interface bridge cho LAN (cổng ether + DHCP/IP gateway LAN). Dùng thống nhất trong script.', type: 'Chữ', def: 'BridgeLAN' },
+                    bridgeWifiName: { aim: 'Tên bridge cho WiFi khi bật wireless. Tách subnet với LAN.', type: 'Chữ', def: 'BridgeWIFI' },
+                    lanPorts: { aim: 'Các cổng LAN add vào bridge LAN (tên bridge ở trên). Cổng WAN được tự loại khỏi danh sách.', type: 'Danh sách', def: 'ether2..ether5' },
                     useVlan: 'Bật để gắn VLAN tag trên cổng WAN trước PPPoE (Viettel/VNPT). Tắt nếu nhà mạng không dùng VLAN (vd FPT).',
                     hasWifi: 'Bật nếu router có WiFi để hiện phần cấu hình wireless (SSID/password + bridge WiFi).',
                     wifiSsid: { aim: 'Tên WiFi (SSID). Tool sẽ áp cùng SSID cho 2.4GHz và 5GHz theo template.', type: 'Chữ', def: 'MikroTik' },
                     wifiPass: { aim: 'Mật khẩu WiFi (WPA2-PSK). Tối thiểu 8 ký tự.', type: 'Chữ', def: 'yourStrongPass' },
-                    lanGw: { aim: 'IP gateway của LAN (trên bridge LAN). Thường dùng 192.168.1.1 hoặc 192.168.88.1.', type: 'IPv4', def: '192.168.1.1' },
+                    lanGw: { aim: 'IP gateway của LAN (gán trên bridge LAN). Thường dùng 192.168.1.1 hoặc 192.168.88.1.', type: 'IPv4', def: '192.168.1.1' },
                     wifiGw: { aim: 'IP gateway của WiFi (trên bridge WiFi). Nên khác subnet với LAN nếu tách mạng.', type: 'IPv4', def: '192.168.2.1' },
                     dnsServers: { aim: 'Danh sách DNS server, phân tách bằng dấu phẩy.', type: 'IPv4 list', def: '8.8.8.8,8.8.4.4' },
                     disableServices: 'Tắt các service hay bị scan (telnet/ftp/ssh/api/api-ssl). Lưu ý kiểm tra lại www/winbox theo nhu cầu quản trị của bạn.'
@@ -454,6 +496,9 @@
                     wifiPassPh: 'Nhập mật khẩu WiFi (tối thiểu 8 ký tự)',
                     hasWifi: 'Thiết bị có WiFi (hiện phần cấu hình wireless)',
                     wifiPassMin: 'Mật khẩu WiFi phải có ít nhất 8 ký tự.',
+                    bridgeLanNamePh: 'BridgeLAN',
+                    bridgeWifiNamePh: 'BridgeWIFI',
+                    bridgeNameRequired: 'Tên bridge không được để trống.',
                     disableServices: 'Tắt telnet/ftp/ssh/api/api-ssl (giữ www/winbox theo mặc định RouterOS)',
                     warn: 'Script khởi đầu: nên chạy trên router mới reset hoặc đã backup/export. Nếu router đang chạy cấu hình cũ, hãy kiểm tra trùng tên interface/bridge/DHCP/NAT.',
                     note: 'Gợi ý: Dán trong Safe Mode (Winbox) để dễ rollback nếu sai. Nếu ISP không dùng PPPoE, bỏ phần PPPoE và thay bằng DHCP client/Static theo nhà mạng.',
@@ -468,6 +513,8 @@
                     vlanId: 'VLAN ID (WAN tag)',
                     ifaceCount: 'Interface count (ether ports)',
                     wanPort: 'WAN port (to modem/ONT)',
+                    bridgeLanName: 'LAN bridge name',
+                    bridgeWifiName: 'WiFi bridge name',
                     lanPorts: 'LAN ports to add into LAN bridge',
                     wifiSsid: 'WiFi SSID (2.4/5)',
                     wifiPass: 'WiFi password (WPA2-PSK)',
@@ -482,7 +529,9 @@
                     vlanId: { aim: 'VLAN ID on the WAN port. PPPoE runs on interface vlan-wan.', type: '1–4094', def: '35' },
                     ifaceCount: { aim: 'How many ether ports your router has (e.g. hEX = 5).', type: 'Number', def: '5' },
                     wanPort: { aim: 'Port to modem/ONT, renamed "WAN". With VLAN enabled, vlan-wan is created and PPPoE uses it.', type: 'etherN', def: 'ether1' },
-                    lanPorts: { aim: 'Ports added into the "LAN Network" bridge. The WAN port is automatically excluded.', type: 'List', def: 'ether2..ether5' },
+                    bridgeLanName: { aim: 'Bridge interface name for LAN (ether ports + LAN DHCP/gateway). Used consistently in the script.', type: 'Text', def: 'BridgeLAN' },
+                    bridgeWifiName: { aim: 'Bridge name for WiFi when wireless is enabled. Separate subnet from LAN.', type: 'Text', def: 'BridgeWIFI' },
+                    lanPorts: { aim: 'LAN ports added to the LAN bridge (name above). WAN port is excluded automatically.', type: 'List', def: 'ether2..ether5' },
                     useVlan: 'Enable to tag VLAN on WAN before PPPoE (Viettel/VNPT). Disable if your ISP has no VLAN (e.g. FPT).',
                     hasWifi: 'Enable if the device has WiFi to show wireless configuration (SSID/password + WiFi bridge).',
                     wifiSsid: { aim: 'WiFi SSID. The template sets the same SSID for both 2.4GHz and 5GHz.', type: 'Text', def: 'MikroTik' },
@@ -524,6 +573,9 @@
                     wifiPassPh: 'Enter WiFi password (min 8 characters)',
                     hasWifi: 'This device has WiFi (show wireless config)',
                     wifiPassMin: 'WiFi password must be at least 8 characters.',
+                    bridgeLanNamePh: 'BridgeLAN',
+                    bridgeWifiNamePh: 'BridgeWIFI',
+                    bridgeNameRequired: 'Bridge name cannot be empty.',
                     disableServices: 'Disable telnet/ftp/ssh/api/api-ssl (leave www/winbox as RouterOS default)',
                     warn: 'Startup script: best on a freshly reset router or after export/backup. On an existing config, review name collisions (interfaces/bridges/DHCP/NAT).',
                     note: 'Tip: Paste in Safe Mode (Winbox) to rollback easily. If your ISP is not PPPoE, remove the PPPoE part and use DHCP client/static WAN config.',
@@ -554,6 +606,17 @@
             };
         }
 
+        function normalizeBridgeName(raw, fallback) {
+            const s = String(raw || '').trim();
+            return s || fallback;
+        }
+
+        function bridgeCliName(name) {
+            const n = String(name || '');
+            if (/[\s"]/.test(n)) return '"' + n.replace(/"/g, '') + '"';
+            return n;
+        }
+
         const ISP_VLAN_PRESETS = {
             viettel: { vlanId: 35 },
             'vnpt-modem': { vlanId: 11 },
@@ -577,6 +640,8 @@
                         ifaceCount: '5',
                         wanPort: '1',
                         lanPorts: [2, 3, 4, 5],
+                        bridgeLanName: 'BridgeLAN',
+                        bridgeWifiName: 'BridgeWIFI',
                         wifiSsid: '',
                         wifiPass: '',
                         lanGw: '192.168.1.1',
@@ -613,8 +678,26 @@
                     if (!hasWifi) return false;
                     return this.effectiveWifiPass.length < 8;
                 },
+                effectiveBridgeLan() {
+                    return normalizeBridgeName(this.form.bridgeLanName, 'BridgeLAN');
+                },
+                effectiveBridgeWifi() {
+                    return normalizeBridgeName(this.form.bridgeWifiName, 'BridgeWIFI');
+                },
+                bridgeLanCli() {
+                    return bridgeCliName(this.effectiveBridgeLan);
+                },
+                bridgeWifiCli() {
+                    return bridgeCliName(this.effectiveBridgeWifi);
+                },
+                bridgeLanNameInvalid() {
+                    return !String(this.form.bridgeLanName || '').trim();
+                },
+                bridgeWifiNameInvalid() {
+                    return !!this.form.hasWifi && !String(this.form.bridgeWifiName || '').trim();
+                },
                 hasValidationError() {
-                    return this.wifiPassTooShort;
+                    return this.wifiPassTooShort || this.bridgeLanNameInvalid || this.bridgeWifiNameInvalid;
                 },
                 ispVlanPresetHelp() {
                     const key = this.form.ispVlanPreset || 'viettel';
@@ -651,7 +734,17 @@
                             (isVi ? '# LỖI: ' : '# ERROR: ') + this.t.ui.wifiPassMin
                         ].join('\n');
                     }
+                    if (this.bridgeLanNameInvalid || this.bridgeWifiNameInvalid) {
+                        return [
+                            isVi
+                                ? '# Cấu hình khởi đầu (tool-generated) — MikroTik Tools'
+                                : '# Startup config (tool-generated) — MikroTik Tools',
+                            (isVi ? '# LỖI: ' : '# ERROR: ') + this.t.ui.bridgeNameRequired
+                        ].join('\n');
+                    }
 
+                    const bridgeLan = this.bridgeLanCli;
+                    const bridgeWifi = this.bridgeWifiCli;
                     const lines = [];
                     lines.push(isVi
                         ? '# Cấu hình khởi đầu (tool-generated) — MikroTik Tools'
@@ -659,8 +752,8 @@
                     lines.push('');
 
                     lines.push('/interface bridge');
-                    lines.push('add add-dhcp-option82=yes dhcp-snooping=yes igmp-snooping=yes name="LAN Network"');
-                    if (hasWifi) lines.push('add add-dhcp-option82=yes dhcp-snooping=yes igmp-snooping=yes name="WIFI Network"');
+                    lines.push('add add-dhcp-option82=yes dhcp-snooping=yes igmp-snooping=yes name=' + bridgeLan);
+                    if (hasWifi) lines.push('add add-dhcp-option82=yes dhcp-snooping=yes igmp-snooping=yes name=' + bridgeWifi);
                     lines.push('');
 
                     lines.push('/interface ethernet');
@@ -706,8 +799,8 @@
                     lines.push('');
 
                     lines.push('/ip dhcp-server');
-                    lines.push('add address-pool=dhcp_pool0 disabled=no interface="LAN Network" lease-time=1d name="IP LAN"');
-                    if (hasWifi) lines.push('add address-pool=dhcp_pool1 disabled=no interface="WIFI Network" lease-time=1d name="IP WIFI"');
+                    lines.push('add address-pool=dhcp_pool0 disabled=no interface=' + bridgeLan + ' lease-time=1d name="IP LAN"');
+                    if (hasWifi) lines.push('add address-pool=dhcp_pool1 disabled=no interface=' + bridgeWifi + ' lease-time=1d name="IP WIFI"');
                     lines.push('');
 
                     lines.push('/user group');
@@ -721,10 +814,10 @@
                         return arr;
                     })();
                     (this.normalizedLanPorts.length ? this.normalizedLanPorts : fallbackPorts).forEach((p) => {
-                        lines.push('add bridge="LAN Network" interface="LAN ' + p + '"');
+                        lines.push('add bridge=' + bridgeLan + ' interface="LAN ' + p + '"');
                     });
-                    if (hasWifi) lines.push('add bridge="WIFI Network" interface="WIFI 2.4GHz"');
-                    if (hasWifi) lines.push('add bridge="WIFI Network" interface="WIFI 5GHz"');
+                    if (hasWifi) lines.push('add bridge=' + bridgeWifi + ' interface="WIFI 2.4GHz"');
+                    if (hasWifi) lines.push('add bridge=' + bridgeWifi + ' interface="WIFI 5GHz"');
                     lines.push('');
 
                     lines.push('/interface detect-internet');
@@ -732,8 +825,8 @@
                     lines.push('');
 
                     lines.push('/ip address');
-                    lines.push('add address=' + lanGw + '/24 interface="LAN Network" network=' + (lan ? lan.network : '192.168.1.0'));
-                    if (hasWifi) lines.push('add address=' + wifiGw + '/24 interface="WIFI Network" network=' + (wifi ? wifi.network : '192.168.2.0'));
+                    lines.push('add address=' + lanGw + '/24 interface=' + bridgeLan + ' network=' + (lan ? lan.network : '192.168.1.0'));
+                    if (hasWifi) lines.push('add address=' + wifiGw + '/24 interface=' + bridgeWifi + ' network=' + (wifi ? wifi.network : '192.168.2.0'));
                     lines.push('');
 
                     lines.push('/ip cloud');
